@@ -1,0 +1,8 @@
+[package]
+name = "main"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+chess_backend = { path = "../chess_backend" }
+chess_frontend_cli = { path = "../chess_frontend_cli/" }

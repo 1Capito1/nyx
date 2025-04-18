@@ -1,0 +1,8 @@
+[workspace]
+members = [
+    "main",
+    "chess_backend",
+    "chess_frontend_cli",
+    "chess_frontend_bevy"
+]
+resolver = "2"
