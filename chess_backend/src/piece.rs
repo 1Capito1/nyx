@@ -1,4 +1,6 @@
 use PieceType::*;
+
+use crate::{Position, Rank};
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum PieceType {
     Pawn,
@@ -61,7 +63,7 @@ impl TryFrom<char> for FenNotation {
             'r' => Ok(FenNotation::BlackRook),
             'q' => Ok(FenNotation::BlackQueen),
             'k' => Ok(FenNotation::BlackKing),
-            _ => Err(())
+            _ => Err(()),
         }
     }
 }
@@ -69,31 +71,70 @@ impl TryFrom<char> for FenNotation {
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum Piece {
     White(PieceType),
-    Black(PieceType)
+    Black(PieceType),
+}
+
+impl Piece {
+    pub(crate) fn get_type(&self) -> PieceType {
+        match self {
+            Self::White(t) | Self::Black(t) => *t,
+        }
+    }
+
+    #[must_use]
+    pub(crate) fn is_type(&self, other: PieceType) -> bool {
+        self.get_type() == other
+    }
+
+    #[must_use]
+    pub(crate) fn pawn_can_double_push(
+        &self,
+        position_from: &Position,
+        position_to: &Position,
+    ) -> bool {
+        if !(self.get_type() == Pawn) {
+            return false;
+        }
+        match self {
+            Piece::White(_piece_type) => {
+                position_from.rank() == Rank(1) && position_to.rank() == Rank(3)
+            }
+            Piece::Black(_piece_type) => {
+                position_from.rank() == Rank(6) && position_from.rank() == Rank(4)
+            }
+        }
+    }
+
+    #[must_use]
+    pub fn pawn_can_push(&self, position_from: &Position, position_to: &Position) -> bool {
+        if !(self.get_type() == Pawn) {
+            return false;
+        }
+        match self {
+            Piece::White(_piece_type) => position_to.rank() == position_from.rank() + Rank(1),
+            Piece::Black(_piece_type) => position_from.rank() == position_from.rank() - Rank(1),
+        }
+    }
 }
 
 impl From<Piece> for FenNotation {
     fn from(value: Piece) -> Self {
         match value {
-            Piece::White(piece) => {
-                match piece {
-                    PieceType::Pawn => FenNotation::WhitePawn,
-                    PieceType::Rook => FenNotation::WhiteRook,
-                    PieceType::Knight => FenNotation::WhiteKnight,
-                    PieceType::Bishop => FenNotation::WhiteBishop,
-                    PieceType::King => FenNotation::WhiteKing,
-                    PieceType::Queen => FenNotation::WhiteQueen,
-                }
+            Piece::White(piece) => match piece {
+                PieceType::Pawn => FenNotation::WhitePawn,
+                PieceType::Rook => FenNotation::WhiteRook,
+                PieceType::Knight => FenNotation::WhiteKnight,
+                PieceType::Bishop => FenNotation::WhiteBishop,
+                PieceType::King => FenNotation::WhiteKing,
+                PieceType::Queen => FenNotation::WhiteQueen,
             },
-            Piece::Black(piece) => {
-                match piece {
-                    PieceType::Pawn => FenNotation::BlackPawn,
-                    PieceType::Rook => FenNotation::BlackRook,
-                    PieceType::Knight => FenNotation::BlackKnight,
-                    PieceType::Bishop => FenNotation::BlackBishop,
-                    PieceType::King => FenNotation::BlackKing,
-                    PieceType::Queen => FenNotation::BlackQueen,
-                }
+            Piece::Black(piece) => match piece {
+                PieceType::Pawn => FenNotation::BlackPawn,
+                PieceType::Rook => FenNotation::BlackRook,
+                PieceType::Knight => FenNotation::BlackKnight,
+                PieceType::Bishop => FenNotation::BlackBishop,
+                PieceType::King => FenNotation::BlackKing,
+                PieceType::Queen => FenNotation::BlackQueen,
             },
         }
     }

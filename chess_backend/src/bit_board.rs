@@ -1,22 +1,94 @@
-use std::ops::{BitOr, Deref};
+use derive_more::{Add, AddAssign, BitOr, Deref, Display, From, Into, Mul, Sub};
 
-#[derive(Default, Clone, Copy)]
+pub trait CheckedSub {
+    type Output;
+
+    fn checked_sub(&self, rhs: Self) -> Option<Self::Output>;
+}
+
+enum FileChars {
+    A = 7,
+    B = 6,
+    C = 5,
+    D = 4,
+    E = 3,
+    F = 2,
+    G = 1,
+    H = 0,
+}
+
+impl FileChars {
+    pub fn to_string(&self) -> String {
+        match self {
+            FileChars::A => "A".to_string(),
+            FileChars::B => "B".to_string(),
+            FileChars::C => "C".to_string(),
+            FileChars::D => "D".to_string(),
+            FileChars::E => "E".to_string(),
+            FileChars::F => "F".to_string(),
+            FileChars::G => "G".to_string(),
+            FileChars::H => "H".to_string(),
+        }
+    }
+
+    pub fn from_file(f: File) -> Self {
+        match f {
+            File(7) => Self::A,
+            File(6) => Self::B,
+            File(5) => Self::C,
+            File(4) => Self::D,
+            File(3) => Self::E,
+            File(2) => Self::F,
+            File(1) => Self::G,
+            File(0) => Self::H,
+            _ => panic!("Invalid file: {f}"),
+        }
+    }
+}
+
+#[derive(Default, Clone, Copy, BitOr)]
 pub(crate) struct BitBoard(u64);
 
-impl BitOr for BitBoard {
-    type Output = BitBoard;
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug, Add, Mul, Display, From, Into, Sub, AddAssign,)]
+pub(crate) struct File(pub u8);
 
-    fn bitor(self, rhs: Self) -> Self::Output {
-        Self(self.0 | rhs.0)
+impl CheckedSub for File {
+    type Output = Self;
+    fn checked_sub(&self, rhs: Self) -> Option<Self::Output> {
+        self.0.checked_sub(rhs.0).map(|t| File(t))
+    }
+}
+
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug, Add, Mul, Display, From, Into, Sub)]
+pub(crate) struct Rank(pub u8);
+
+impl CheckedSub for Rank {
+    type Output = Self;
+    fn checked_sub(&self, rhs: Self) -> Option<Self::Output> {
+        self.0.checked_sub(rhs.0).map(|t| Rank(t))
+    }
+}
+
+impl Rank {
+    pub(crate) fn diff(&self, rhs: Rank) -> Rank {
+        Rank(self.0.abs_diff(rhs.0))
+    }
+    pub(crate) fn offset(&self, delta: i8) -> Option<Rank> {
+        let base = self.0 as i8 + delta;
+        if (0..=7).contains(&base) {
+            Some(Rank(base as u8))
+        } else {
+            None
+        }
     }
 }
 
 pub(crate) struct Position {
-    file: u8,
-    rank: u8,
+    file: File,
+    rank: Rank,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Deref)]
 pub struct Square(u8);
 
 impl Square {
@@ -32,41 +104,34 @@ impl Square {
         Square::new(value)
     }
     pub(crate) fn to_position(&self) -> Position {
-        Position::new(**self % 8, **self / 8)
+        Position::new(File(**self % 8), Rank(**self / 8))
     }
 }
 
 impl Square {}
 
-impl Deref for Square {
-    type Target = u8;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
 
 impl Position {
-    pub(crate) fn new(file: u8, rank: u8) -> Self {
-        if file >= 8 || rank >= 8 {
+    pub(crate) fn new(file: File, rank: Rank) -> Self {
+        if file >= File(8) || rank >= Rank(8) {
             panic!("Invalid position: File {file}, Rank: {rank}");
         }
         Self { file, rank }
     }
 
-    pub(crate) fn file(&self) -> u8 {
+    pub(crate) fn file(&self) -> File {
         self.file
     }
 
-    fn file_mut(&mut self) -> &mut u8 {
+    fn file_mut(&mut self) -> &mut File {
         &mut self.file
     }
 
-    pub(crate) fn rank(&self) -> u8 {
+    pub(crate) fn rank(&self) -> Rank {
         self.rank
     }
 
-    fn rank_mut(&mut self) -> &mut u8 {
+    fn rank_mut(&mut self) -> &mut Rank {
         &mut self.rank
     }
 
@@ -75,13 +140,13 @@ impl Position {
         if file >= 8 {
             panic!("Invalid file: {file}");
         }
-        *self.file_mut() = file;
+        *self.file_mut() = File(file);
     }
     pub(crate) fn set_rank(&mut self, rank: u8) {
         if rank >= 8 {
             panic!("Invalid rank: {rank}");
         }
-        *self.rank_mut() = rank;
+        *self.rank_mut() = Rank(rank);
     }
 
     pub(crate) fn to_square(&self) -> Square {
@@ -96,11 +161,10 @@ impl Position {
     }
 
     pub(crate) fn square_num(&self) -> u8 {
-        if self.file >= 8 || self.rank >= 8 {
+        if self.file >= File(8) || self.rank >= Rank(8) {
             panic!("file: {}, rank: {}", self.file, self.rank)
         }
-        println!("file: {}, rank: {}", self.file, self.rank);
-        self.rank * 8 + self.file
+        self.rank.0 * 8 + self.file.0
     }
 }
 
@@ -140,12 +204,14 @@ impl BitBoard {
     pub fn print_bitboard_rep(rep: &[char; 64]) {
         const WIDTH: usize = 8;
         for rank in (0..8).rev() {
+            print!("{}  ", FileChars::from_file(File(rank)).to_string());
             // start from rank 8
             for file in 0..8 {
-                let i = rank * WIDTH + file;
+                let i = rank as usize * WIDTH + file;
                 print!("{} ", rep[i]);
             }
-            println!();
+            println!()
         }
+        println!("\n   1 2 3 4 5 6 7 8 ");
     }
 }

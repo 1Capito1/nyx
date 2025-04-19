@@ -1,13 +1,14 @@
-use self::bit_board::{Position, Square};
+use self::bit_board::{File, Position, Rank, Square};
 use self::game_state::GameState;
-use self::move_gen::Move;
+use self::moves::Move;
 use self::piece::{Piece, PieceType};
 
 mod bit_board;
 mod board;
 mod game_state;
-mod move_gen;
+mod moves;
 mod piece;
+mod move_gen;
 
 // Starting position in FEN notation
 pub const STARTING_POSITION_FEN: &'static str =
@@ -74,11 +75,12 @@ fn test_move_piece_unchecked_basic() {
     // Start from simple board: white pawn on e2 (file 4, rank 1)
     let mut game = GameState::from_fen("8/8/8/8/8/8/4P3/8 w - - 0 1");
 
-    let from = Square::from_position(&Position::new(4, 1)); // e2
-    let to = Square::from_position(&Position::new(4, 3));   // e4
+    let from = Square::from_position(&Position::new(File(4), Rank(1))); // e2
+    let to = Square::from_position(&Position::new(File(4), Rank(3)));   // e4
 
     let piece_before = game.board.get_cached_piece_at(&from.to_position());
     println!("Asserting on to_pos: file: {}, rank: {}", to.to_position().file(), to.to_position().rank());
+    game.board.pretty_print();
     assert_eq!(piece_before, Some(Piece::White(PieceType::Pawn)));
 
     let piece_at_dest_before = game.board.get_cached_piece_at(&to.to_position());
@@ -101,4 +103,42 @@ fn test_move_piece_unchecked_basic() {
     assert_eq!(undo.move_from(), from);
     assert_eq!(undo.move_to(), to);
     assert!(undo.captured_piece().is_none());
+}
+
+#[test]
+fn test_white_pawn_push_and_double_push() {
+    // Setup board with a white pawn on e2 (file 4, rank 1)
+    let mut game = GameState::from_fen("8/8/8/8/8/8/4P3/8 w - - 0 1");
+
+    let from = Square::from_position(&Position::new(File(4), Rank(1))); // e2
+    let to_single = Square::from_position(&Position::new(File(4), Rank(2))); // e3
+    let to_double = Square::from_position(&Position::new(File(4), Rank(3))); // e4
+
+    // Single push
+    let mv = Move::builder().move_from(from).move_to(to_single).build();
+    let undo = game.board.move_pawn(mv);
+    assert!(undo.is_some(), "Pawn should be able to single push");
+
+    // Reset game state
+    let mut game = GameState::from_fen("8/8/8/8/8/8/4P3/8 w - - 0 1");
+
+    // Double push
+    let mv = Move::builder().move_from(from).move_to(to_double).build();
+    let undo = game.board.move_pawn(mv);
+    assert!(undo.is_some(), "Pawn should be able to double push");
+}
+
+#[test]
+fn test_white_pawn_double_push_blocked() {
+    // Pawn on e2, blocking piece on e3
+    let mut game = GameState::from_fen("8/8/8/8/8/4P3/4P3/8 w - - 0 1");
+    game.board.pretty_print();
+
+    let from = Square::from_position(&Position::new(File(4), Rank(1))); // e2
+    let to_double = Square::from_position(&Position::new(File(4), Rank(3))); // e4
+
+    let mv = Move::builder().move_from(from).move_to(to_double).build();
+    let undo = game.board.move_pawn(mv);
+    game.board.pretty_print();
+    assert!(undo.is_none(), "Pawn double push should fail due to blocking piece");
 }

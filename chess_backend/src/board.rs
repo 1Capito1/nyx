@@ -1,22 +1,10 @@
 use crate::bit_board::{BitBoard, Position, Square};
-use crate::move_gen::UndoMove;
-use crate::move_gen::Move;
-use crate::piece::{FenNotation, Piece};
+use crate::moves::Move;
+use crate::moves::UndoMove;
 use crate::piece::PieceType::*;
+use crate::piece::{FenNotation, Piece, PieceType};
+use crate::Rank;
 
-// TODO: Use or remove
-//#[repr(u8)]
-//#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-//pub enum Square {
-//    A1 = 0,  B1 = 1,  C1 = 2,  D1 = 3,  E1 = 4,  F1 = 5,  G1 = 6,  H1 = 7,
-//    A2 = 8,  B2 = 9,  C2 = 10, D2 = 11, E2 = 12, F2 = 13, G2 = 14, H2 = 15,
-//    A3 = 16, B3 = 17, C3 = 18, D3 = 19, E3 = 20, F3 = 21, G3 = 22, H3 = 23,
-//    A4 = 24, B4 = 25, C4 = 26, D4 = 27, E4 = 28, F4 = 29, G4 = 30, H4 = 31,
-//    A5 = 32, B5 = 33, C5 = 34, D5 = 35, E5 = 36, F5 = 37, G5 = 38, H5 = 39,
-//    A6 = 40, B6 = 41, C6 = 42, D6 = 43, E6 = 44, F6 = 45, G6 = 46, H6 = 47,
-//    A7 = 48, B7 = 49, C7 = 50, D7 = 51, E7 = 52, F7 = 53, G7 = 54, H7 = 55,
-//    A8 = 56, B8 = 57, C8 = 58, D8 = 59, E8 = 60, F8 = 61, G8 = 62, H8 = 63,
-//}
 
 pub(crate) struct Board {
     pub(crate) white_pawn: BitBoard,
@@ -73,7 +61,7 @@ impl Board {
             (self.black_bishop, Piece::Black(Bishop)),
             (self.black_queen, Piece::Black(Queen)),
             (self.black_king, Piece::Black(King)),
-        ]
+        ];
     }
     pub fn get_piece_at(&self, position: Position) -> Option<Piece> {
         let square = Square::from_position(&position);
@@ -99,22 +87,22 @@ impl Board {
         }
     }
     fn get_white_peices(&self) -> BitBoard {
-        self.white_pawn | 
-            self.white_bishop |
-            self.white_rook | 
-            self.white_knight |
-            self.white_pawn |
-            self.white_queen | 
-            self.white_king
+        self.white_pawn
+            | self.white_bishop
+            | self.white_rook
+            | self.white_knight
+            | self.white_pawn
+            | self.white_queen
+            | self.white_king
     }
 
     fn get_black_peices(&self) -> BitBoard {
-        self.black_pawn | 
-            self.black_bishop |
-            self.black_rook | 
-            self.black_knight |
-            self.black_queen | 
-            self.black_king
+        self.black_pawn
+            | self.black_bishop
+            | self.black_rook
+            | self.black_knight
+            | self.black_queen
+            | self.black_king
     }
 
     pub fn pretty_print(&self) -> [char; 64] {
@@ -173,7 +161,7 @@ impl Board {
                 panic!("Multiple Pieces on one square");
             }
         }
-        BitBoard::print_bitboard_rep(&board_rep);   
+        BitBoard::print_bitboard_rep(&board_rep);
         return board_rep;
     }
 
@@ -195,8 +183,8 @@ impl Board {
     }
 
     pub fn place_piece(&mut self, piece: impl Into<Piece>, position: &Position) {
-         let board = self.match_board(piece.into());
-         board.place(position);
+        let board = self.match_board(piece.into());
+        board.place(position);
     }
 
     pub fn move_piece_unchecked(&mut self, move_info: Move) -> UndoMove {
@@ -223,5 +211,56 @@ impl Board {
                 .build();
         }
         panic!("Piece not found");
+    }
+
+    /// moves a pawn to the position designated in [```move_info```]
+    /// checks that piece should be a pawn, but will panic if it isn't, piece
+    /// checks should be from the caller
+    pub fn move_pawn(&mut self, move_info: Move) -> Option<UndoMove> {
+        let from = move_info.move_from();
+        let to = move_info.move_to();
+        let pos_to = to.to_position();
+        let pos_from = from.to_position();
+
+        let piece = self.get_cached_piece_at(&pos_from)?;
+
+        if !piece.is_type(Pawn) {
+            panic!("move_pawn called on non-pawn: {piece:?}");
+        }
+
+        if pos_to.file() != pos_from.file() {
+            return None; // TODO: is a capture
+        }
+
+        // Double push
+        if piece.pawn_can_double_push(&pos_from, &pos_to) {
+            let step_rank = match piece {
+                Piece::White(_) => pos_from.rank().offset(1)?,
+                Piece::Black(_) => pos_from.rank().offset(-1)?,
+            };
+
+            let step_pos = Position::new(pos_to.file(), step_rank);
+
+
+            if self.collides(&step_pos) || self.collides(&pos_to) {
+                return None;
+            }
+            return Some(self.move_piece_unchecked(move_info));
+        }
+
+        if piece.pawn_can_push(&pos_from, &pos_to) {
+            if self.collides(&pos_to) {
+                return None;
+            }
+            return Some(self.move_piece_unchecked(move_info));
+        }
+
+        unimplemented!()
+
+    }
+
+    /// uses cached piece to determine if a piece is at [```Position```]
+    pub fn collides(&self, pos: &Position) -> bool {
+        self.get_cached_piece_at(pos).is_some()
     }
 }
