@@ -1,4 +1,4 @@
-use self::bit_board::{File, Position, Rank, Square};
+use self::bit_board::{File, FileChars, Position, Rank, Square};
 use self::game_state::GameState;
 use self::moves::Move;
 use self::piece::{Piece, PieceType};
@@ -141,4 +141,142 @@ fn test_white_pawn_double_push_blocked() {
     let undo = game.board.move_pawn(mv);
     game.board.pretty_print();
     assert!(undo.is_none(), "Pawn double push should fail due to blocking piece");
+}
+#[test]
+
+fn test_white_pawn_capture_right() {
+    let a = File(4);
+    let b = File(4);
+    dbg!(a == b); // should print true
+    // White pawn on e5, black pawn on f6
+    let mut game = GameState::from_fen("8/8/5p2/4P3/8/8/8/8 w - - 0 1");
+    
+    game.board.pretty_print();
+
+    let from = Square::from_position(&Position::from_notation(FileChars::E, 5));
+    let to = Square::from_position(&Position::from_notation(FileChars::F, 6));
+
+    let mv = Move::builder().move_from(from).move_to(to).build();
+    let result = game.board.move_pawn(mv);
+
+    game.board.pretty_print();
+
+    assert!(result.is_some(), "White pawn should capture right (e5 to f6)");
+}
+
+#[test]
+fn test_white_pawn_capture_left() {
+    // White pawn on e4, black pawn on d5
+    let mut game = GameState::from_fen("8/8/8/3p4/4P3/8/8/8 w - - 0 1");
+
+    let from = Square::from_position(&Position::from_notation(FileChars::E, 4)); // e4
+    let to = Square::from_position(&Position::from_notation(FileChars::D, 5));   // d5
+
+    let mv = Move::builder().move_from(from).move_to(to).build();
+    let result = game.board.move_pawn(mv);
+
+    assert!(result.is_some(), "White pawn should capture left (e4 to d5)");
+}
+
+#[test]
+fn test_black_pawn_capture_right() {
+    // Black pawn on e5, white pawn on d4
+    let mut game = GameState::from_fen("8/8/8/4p3/3P4/8/8/8 b - - 0 1");
+
+    game.board.pretty_print();
+
+    let from = Square::from_position(&Position::from_notation(FileChars::E, 5));
+    let to = Square::from_position(&Position::from_notation(FileChars::D, 4));
+
+    let mv = Move::builder().move_from(from).move_to(to).build();
+    let result = game.board.move_pawn(mv);
+
+    assert!(result.is_some(), "Black pawn should capture right (e5 to d4)");
+}
+
+#[test]
+fn test_black_pawn_capture_left() {
+    // Black pawn on e5, white pawn on f4
+    let mut game = GameState::from_fen("8/8/8/4p3/5P2/8/8/8 b - - 0 1");
+
+    let from = Square::from_position(&Position::from_notation(FileChars::E, 5));
+    let to = Square::from_position(&Position::from_notation(FileChars::F, 4));
+
+    let mv = Move::builder().move_from(from).move_to(to).build();
+    let result = game.board.move_pawn(mv);
+
+    assert!(result.is_some(), "Black pawn should capture left (e5 to f4)");
+}
+
+#[test]
+fn test_pawn_illegal_diagonal_without_target() {
+    // White pawn on e4, nothing on d5
+    let mut game = GameState::from_fen("8/8/8/3P4/8/8/8/8 w - - 0 1");
+
+    let from = Square::from_position(&Position::new(File(3), Rank(4))); // d4
+    let to = Square::from_position(&Position::new(File(2), Rank(5)));   // c5
+
+    let mv = Move::builder().move_from(from).move_to(to).build();
+    let result = game.board.move_pawn(mv);
+
+    assert!(result.is_none(), "Pawn should not be able to capture if no piece is there");
+}
+
+#[test]
+fn test_pawn_cannot_capture_same_color() {
+    // White pawn on e4, white pawn on f5
+    let mut game = GameState::from_fen("8/8/5P2/4P3/8/8/8/8 w - - 0 1");
+
+    let from = Square::from_position(&Position::new(File(4), Rank(4))); // e4
+    let to = Square::from_position(&Position::new(File(5), Rank(5)));   // f5
+
+    let mv = Move::builder().move_from(from).move_to(to).build();
+    let result = game.board.move_pawn(mv);
+
+    assert!(result.is_none(), "Pawn should not be able to capture its own piece");
+}
+
+#[test]
+fn test_white_pawn_cannot_capture_left_on_file_a() {
+    // White pawn on a4, nothing to capture
+    let mut game = GameState::from_fen("8/8/8/8/P7/8/8/8 w - - 0 1");
+
+    let from = Square::from_position(&Position::from_notation(FileChars::A, 4));
+    let to = Square::from_position(&Position::from_notation(FileChars::H, 5)); // totally wrong direction
+
+    let mv = Move::builder().move_from(from).move_to(to).build();
+    let result = game.board.move_pawn(mv);
+
+    assert!(result.is_none(), "White pawn on a4 should not be able to capture off the left edge");
+}
+
+#[test]
+fn test_white_pawn_capture_from_a4_to_b5() {
+    // White pawn on a4, black pawn on b5
+    let mut game = GameState::from_fen("8/8/8/1p6/P7/8/8/8 w - - 0 1");
+
+    let from = Square::from_position(&Position::from_notation(FileChars::A, 4)); // a4
+    let to   = Square::from_position(&Position::from_notation(FileChars::B, 5)); // b5
+
+    let mv = Move::builder().move_from(from).move_to(to).build();
+    let result = game.board.move_pawn(mv);
+
+    assert!(result.is_some(), "White pawn should be able to capture from a4 to b5");
+}
+
+#[test]
+fn test_white_pawn_capture_from_h4_to_g5() {
+    // White pawn on h4, black pawn on g5
+    let mut game = GameState::from_fen("8/8/8/6p1/7P/8/8/8 w - - 0 1");
+    game.board.pretty_print();
+
+    let from = Square::from_position(&Position::from_notation(FileChars::H, 4)); // h4
+    let to   = Square::from_position(&Position::from_notation(FileChars::G, 5)); // g5
+
+    let mv = Move::builder().move_from(from).move_to(to).build();
+    let result = game.board.move_pawn(mv);
+
+    game.board.pretty_print();
+
+    assert!(result.is_some(), "White pawn should be able to capture from h4 to g5");
 }

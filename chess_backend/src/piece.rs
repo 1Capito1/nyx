@@ -1,5 +1,6 @@
 use PieceType::*;
 
+use crate::bit_board::Offset;
 use crate::{Position, Rank};
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum PieceType {
@@ -114,6 +115,23 @@ impl Piece {
             Piece::White(_piece_type) => position_to.rank() == position_from.rank() + Rank(1),
             Piece::Black(_piece_type) => position_from.rank() == position_from.rank() - Rank(1),
         }
+    }
+
+    #[must_use]
+    pub fn pawn_step<T: Offset>(&self, t: T) -> Option<<T as Offset>::Output> { 
+        debug_assert_eq!(self.get_type(), PieceType::Pawn);
+        match self {
+            Piece::White(_) => t.offset(1),
+            Piece::Black(_) => t.offset(-1),
+        }
+    }
+
+    #[must_use]
+    pub fn is_same_color(&self, other: &Self) -> bool {
+        matches!((self, other),
+            (Piece::White(_), Piece::White(_)) |
+            (Piece::Black(_), Piece::Black(_)),
+        )
     }
 }
 

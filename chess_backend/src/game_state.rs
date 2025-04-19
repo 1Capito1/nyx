@@ -54,7 +54,7 @@ impl GameState {
             "b" => Player::Black,
             _ => panic!("Invalid active color"),
         };
-        board.update_board_rep();
+        board.update_cache();
         // TODO: rest of FEN
         Self { board, player }
     }

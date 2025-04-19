@@ -6,15 +6,15 @@ pub trait CheckedSub {
     fn checked_sub(&self, rhs: Self) -> Option<Self::Output>;
 }
 
-enum FileChars {
-    A = 7,
-    B = 6,
-    C = 5,
-    D = 4,
-    E = 3,
-    F = 2,
-    G = 1,
-    H = 0,
+pub enum FileChars {
+    A = 0,
+    B = 1,
+    C = 2,
+    D = 3,
+    E = 4,
+    F = 5,
+    G = 6,
+    H = 7,
 }
 
 impl FileChars {
@@ -33,14 +33,14 @@ impl FileChars {
 
     pub fn from_file(f: File) -> Self {
         match f {
-            File(7) => Self::A,
-            File(6) => Self::B,
-            File(5) => Self::C,
-            File(4) => Self::D,
-            File(3) => Self::E,
-            File(2) => Self::F,
-            File(1) => Self::G,
-            File(0) => Self::H,
+            File(0) => Self::A,
+            File(1) => Self::B,
+            File(2) => Self::C,
+            File(3) => Self::D,
+            File(4) => Self::E,
+            File(5) => Self::F,
+            File(6) => Self::G,
+            File(7) => Self::H,
             _ => panic!("Invalid file: {f}"),
         }
     }
@@ -51,6 +51,24 @@ pub(crate) struct BitBoard(u64);
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug, Add, Mul, Display, From, Into, Sub, AddAssign,)]
 pub(crate) struct File(pub u8);
+
+pub trait Offset {
+    type Output;
+
+    fn offset(&self, delta: i8) -> Option<Self::Output>;
+}
+
+impl Offset for File {
+    type Output = File;
+    fn offset(&self, delta: i8) -> Option<Self::Output> {
+        let base = self.0 as i8 + delta;
+        if (0..=7).contains(&base) {
+            Some(File(base as u8))
+        } else {
+            None
+        }
+    }
+}
 
 impl CheckedSub for File {
     type Output = Self;
@@ -69,11 +87,9 @@ impl CheckedSub for Rank {
     }
 }
 
-impl Rank {
-    pub(crate) fn diff(&self, rhs: Rank) -> Rank {
-        Rank(self.0.abs_diff(rhs.0))
-    }
-    pub(crate) fn offset(&self, delta: i8) -> Option<Rank> {
+impl Offset for Rank {
+    type Output = Rank;
+    fn offset(&self, delta: i8) -> Option<Self::Output> {
         let base = self.0 as i8 + delta;
         if (0..=7).contains(&base) {
             Some(Rank(base as u8))
@@ -83,6 +99,13 @@ impl Rank {
     }
 }
 
+impl Rank {
+    pub(crate) fn diff(&self, rhs: Rank) -> Rank {
+        Rank(self.0.abs_diff(rhs.0))
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct Position {
     file: File,
     rank: Rank,
@@ -117,6 +140,10 @@ impl Position {
             panic!("Invalid position: File {file}, Rank: {rank}");
         }
         Self { file, rank }
+    }
+
+    pub(crate) fn from_notation(file_letter: FileChars, rank_num: u8) -> Self {
+        Position::new(File(file_letter as u8), Rank(rank_num - 1))
     }
 
     pub(crate) fn file(&self) -> File {

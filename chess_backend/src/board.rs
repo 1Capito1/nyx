@@ -1,4 +1,4 @@
-use crate::bit_board::{BitBoard, Position, Square};
+use crate::bit_board::{BitBoard, Offset, Position, Square};
 use crate::moves::Move;
 use crate::moves::UndoMove;
 use crate::piece::PieceType::*;
@@ -77,7 +77,7 @@ impl Board {
         let square = Square::from_position(position);
         return self.board_rep[*square as usize];
     }
-    pub fn update_board_rep(&mut self) {
+    pub fn update_cache(&mut self) {
         self.board_rep = [None; 64];
 
         for (bitboard, piece) in self.get_bitboard_pieces() {
@@ -203,7 +203,7 @@ impl Board {
             let board = self.match_board(piece);
             board.clear_bit(square_from);
             board.set_bit(square_to);
-            self.update_board_rep();
+            self.update_cache();
             return UndoMove::builder()
                 .move_to(square_to)
                 .move_from(square_from)
@@ -217,30 +217,50 @@ impl Board {
     /// checks that piece should be a pawn, but will panic if it isn't, piece
     /// checks should be from the caller
     pub fn move_pawn(&mut self, move_info: Move) -> Option<UndoMove> {
+        println!("Move Pawn");
         let from = move_info.move_from();
         let to = move_info.move_to();
         let pos_to = to.to_position();
         let pos_from = from.to_position();
-
         let piece = self.get_cached_piece_at(&pos_from)?;
 
         if !piece.is_type(Pawn) {
             panic!("move_pawn called on non-pawn: {piece:?}");
         }
 
+        dbg!(pos_to.file(), pos_from.file());
         if pos_to.file() != pos_from.file() {
-            return None; // TODO: is a capture
+            println!("Capture");
+            let left = pos_to.file().offset(-1)?;
+            let right = pos_to.file().offset(1)?;
+            // check that pos_to is only one to the left or right
+            if !(left == pos_from.file() || right == pos_from.file()) {
+                return None;
+            }
+            let step_rank = piece.pawn_step(pos_to.rank())?;
+
+            // make sure pos_to is only one rank from pos_from
+            if step_rank == pos_to.rank() {
+                println!("pos_to = pos_rank");
+                return None;
+            }
+
+            let piece_at = self.get_cached_piece_at(&pos_to)?;
+
+            // make sure the piece at the new position isn't the same color
+            if piece.is_same_color(&piece_at) {
+                println!("Same color");
+                return None;
+            }
+
+            return Some(self.move_piece_unchecked(move_info))
+
         }
 
-        // Double push
+        // Double push TODO: en passant
         if piece.pawn_can_double_push(&pos_from, &pos_to) {
-            let step_rank = match piece {
-                Piece::White(_) => pos_from.rank().offset(1)?,
-                Piece::Black(_) => pos_from.rank().offset(-1)?,
-            };
-
+            let step_rank = piece.pawn_step(pos_from.rank())?;
             let step_pos = Position::new(pos_to.file(), step_rank);
-
 
             if self.collides(&step_pos) || self.collides(&pos_to) {
                 return None;
@@ -248,6 +268,7 @@ impl Board {
             return Some(self.move_piece_unchecked(move_info));
         }
 
+        // push
         if piece.pawn_can_push(&pos_from, &pos_to) {
             if self.collides(&pos_to) {
                 return None;
