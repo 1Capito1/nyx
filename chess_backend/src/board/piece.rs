@@ -1,8 +1,9 @@
+use derive_more::Display;
 use PieceType::*;
 
 use crate::bit_board::Offset;
 use crate::{Position, Rank};
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Display)]
 pub enum PieceType {
     Pawn,
     Rook,
@@ -69,7 +70,7 @@ impl TryFrom<char> for FenNotation {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Display)]
 pub enum Piece {
     White(PieceType),
     Black(PieceType),
@@ -107,13 +108,13 @@ impl Piece {
     }
 
     #[must_use]
-    pub fn pawn_can_push(&self, position_from: &Position, position_to: &Position) -> bool {
+    pub(crate) fn pawn_can_push(&self, position_from: &Position, position_to: &Position) -> bool {
         if !(self.get_type() == Pawn) {
             return false;
         }
         match self {
             Piece::White(_piece_type) => position_to.rank() == position_from.rank() + Rank(1),
-            Piece::Black(_piece_type) => position_from.rank() == position_from.rank() - Rank(1),
+            Piece::Black(_piece_type) => position_to.rank() == position_from.rank() - Rank(1),
         }
     }
 

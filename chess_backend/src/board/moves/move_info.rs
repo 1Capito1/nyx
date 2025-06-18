@@ -1,11 +1,11 @@
 use typed_builder::TypedBuilder;
 
 use crate::bit_board::Square;
-use crate::piece::Piece;
+use crate::board::Piece;
 
 pub(crate) enum SpecialMove {
     Promotion(Piece),
-    EnPassant(u8),
+    EnPassant(Square),
     Castling{rook_to: u8, rook_from: u8},
 }
 
@@ -64,6 +64,13 @@ impl UndoMove {
 
     pub(crate) fn special(&self) -> Option<&SpecialMove> {
         self.special.as_ref()
+    }
+    pub(crate) fn special_mut(&mut self) -> Option<&mut SpecialMove> {
+        self.special.as_mut()
+    }
+
+    pub(crate) fn set_special(&mut self, special: Option<SpecialMove>) {
+        self.special = special;
     }
 }
 
