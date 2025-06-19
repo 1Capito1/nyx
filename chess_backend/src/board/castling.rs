@@ -26,14 +26,19 @@ impl CastlingRights {
         }
     }
 
-    pub(crate) fn get_from_fen(&mut self, c: char) -> &mut bool {
+    pub(crate) fn get_from_fen(&mut self, c: char) {
         eprintln!("character {c}");
         match c {
-            'k' => &mut self.black_kingside,
-            'q' => &mut self.black_queenside,
-            'K' => &mut self.white_kingside,
-            'Q' => &mut self.white_queenside,
+            'k' => self.black_kingside = true,
+            'q' => self.black_queenside = true,
+            'K' => self.white_kingside = true,
+            'Q' => self.white_queenside = true,
+            '-' => (),
             _ => panic!("Invalid FEN"),
         }
+    }
+
+    pub(crate) fn set_castling_rights(&mut self, s: &str) {
+        s.chars().for_each(|c| self.get_from_fen(c));
     }
 }

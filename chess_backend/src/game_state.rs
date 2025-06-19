@@ -20,20 +20,33 @@ pub struct GameState {
     player: Player,
 }
 
-impl GameState {
-    pub fn from_fen(string: &str) -> Self {
-        let mut sections = string.split_whitespace();
-        let board_str = sections.next().expect("Missing FEN board");
-        let active_color = sections.next().expect("Missing Active Color");
-        let castling_rights = sections.next().expect("Missing Castling Rights");
-        let en_passant_square = sections.next().expect("Missing En Passant Square");
-        let halfmove_clock = sections.next().expect("Missing Halfmove Clock");
-        let fullmove_clock = sections.next().expect("Missing Fullmove Clock");
+pub struct FenState<'a> {
+    board_str: &'a str,
+    active_color: &'a str,
+    castling_rights: &'a str,
+    en_passant_square: &'a str,
+    halfmove_clock: &'a str,
+    fullmove_clock: &'a str,
+}
 
-        let mut board = Board::default();
+impl<'a> FenState<'a> {
+    pub fn new(string: &'a str) -> FenState<'a> {
+        let mut sections = string.split_whitespace();
+        Self {
+            board_str: sections.next().expect("Missing FEN board"),
+            active_color: sections.next().expect("Missing Active Color"),
+            castling_rights: sections.next().expect("Missing Castling Rights"),
+            en_passant_square: sections.next().expect("Missing En Passant Square"),
+            halfmove_clock: sections.next().expect("Missing Halfmove Clock"),
+            fullmove_clock: sections.next().expect("Missing Fullmove Clock"),
+        }
+    }
+}
+
+impl GameState {
+    fn parse_board(board: &mut Board, board_str: &str) {
         let mut rank: Rank = Rank(7);
         let mut file: File = File(0);
-
         for c in board_str.chars() {
             match c {
                 '/' => {
@@ -57,20 +70,22 @@ impl GameState {
         if rank != Rank(0) || file != File(8) {
             panic!("FEN parsing error: final rank is invalid");
         }
-        // next should be w or b for current player turn
-        let player = match active_color {
+    }
+
+    fn set_active_color(board: &mut Board, active_color: &str) -> Player {
+        match active_color {
             "w" => Player::White(Agent::Human),
             "b" => Player::Black(Agent::Ai),
             _ => panic!("Invalid active color"),
-        };
-
-        if castling_rights != "-" {
-            castling_rights
-                .chars()
-                .for_each(|c| *board.castling_rights.get_from_fen(c) = true);
         }
+    }
 
-        let passant_square = if en_passant_square != "-" {
+    fn set_castling_rights(board: &mut Board, castling_rights: &str) {
+        board.castling_rights.set_castling_rights(castling_rights);
+    }
+
+    fn set_en_passant_square(board: &mut Board, en_passant_square: &str) {
+        board.en_passant_square = if en_passant_square != "-" {
             let bytes = en_passant_square.as_bytes();
             assert_eq!(bytes.len(), 2, "Invalid en passant square length");
             let file = File(bytes[0] - b'a');
@@ -79,7 +94,21 @@ impl GameState {
 
             Some(pos.to_square())
         } else { None };
-        board.en_passant_square = passant_square;
+    }
+
+    pub fn from_fen(string: &str) -> Self {
+        let state = FenState::new(string);
+        let mut board = Board::default();
+
+        Self::parse_board(&mut board, state.board_str);
+
+        // next should be w or b for current player turn
+        let player = Self::set_active_color(&mut board, state.active_color);
+
+        Self::set_castling_rights(&mut board, state.castling_rights);
+
+        Self::set_en_passant_square(&mut board, state.en_passant_square);
+
         board.update_cache();
         // TODO: rest of FEN
         Self { board, player }

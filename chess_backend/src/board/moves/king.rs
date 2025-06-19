@@ -34,6 +34,7 @@ impl Board {
         if !normal_move {}
         normal_move
     }
+
     fn is_castle(&mut self, from: &Position, to: &Position) -> bool {
         let df = to.file().0 as i8 - from.file().0 as i8;
         let dr = to.rank().0 as i8 - from.rank().0 as i8;
