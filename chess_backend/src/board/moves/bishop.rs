@@ -28,8 +28,8 @@ impl Board {
             &current_pos,
             &pos_to,
             is_bishop_move,
-            MoveError::InvalidMove(Bishop, current_pos, pos_to
-        ))?;
+            MoveError::InvalidMove(Bishop, current_pos, pos_to)
+        )?;
 
         println!("{dir:?}");
 
@@ -43,8 +43,8 @@ impl Board {
         }
         Ok(self.move_piece_unchecked(&move_info))
     }
-
 }
+
 pub(crate) fn is_bishop_move(from: &Position, to: &Position) -> bool {
     let rank_diff = from.rank().0 as i8 - to.rank().0 as i8;
     let file_diff = from.file().0 as i8 - to.file().0 as i8;

@@ -134,6 +134,14 @@ impl Piece {
             (Piece::Black(_), Piece::Black(_)),
         )
     }
+
+    #[must_use]
+    pub fn is_white(&self) -> bool {
+        if let Piece::White(_) = self {
+            return true;
+        }
+        false
+    }
 }
 
 impl From<Piece> for FenNotation {

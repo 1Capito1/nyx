@@ -2,7 +2,7 @@ use derive_more::Display;
 use thiserror::Error;
 
 use crate::board::{Piece, PieceType};
-use crate::bit_board::Position;
+use crate::bit_board::{FileChars, Position};
 
 #[derive(Error, Debug)]
 pub enum MoveError {
@@ -22,7 +22,7 @@ pub enum MoveError {
     IllegalDoublePawnPush(Position, Position),
     #[error("Pawn promotion without specifying piece: {0}:{1}")]
     PromotionPieceMissing(Position, Position),
-    #[error("Invalid move: Piece: {0}, from: {1}, to: {1}")]
+    #[error("Invalid move: Piece: {0}, from: {1}, to: {2}")]
     InvalidMove(PieceType, Position, Position),
     #[error("Piece Blocking Sliding Movement: from: {0}, to: {1}")]
     PieceBlockingMovement(Position, Position),

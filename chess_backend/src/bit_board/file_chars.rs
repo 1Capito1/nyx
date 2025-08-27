@@ -1,4 +1,5 @@
 use std::fmt::Display;
+use std::fmt::Debug;
 
 use super::File;
 
@@ -29,9 +30,15 @@ impl Display for FileChars {
     }
 }
 
-impl FileChars {
-    pub fn from_file(f: File) -> Self {
-        match f {
+impl Debug for FileChars {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self}")
+    }
+}
+
+impl From<File> for FileChars {
+    fn from(value: File) -> Self {
+        match value {
             File(0) => Self::A,
             File(1) => Self::B,
             File(2) => Self::C,
@@ -40,8 +47,7 @@ impl FileChars {
             File(5) => Self::F,
             File(6) => Self::G,
             File(7) => Self::H,
-            _ => panic!("Invalid file: {f}"),
+            _ => panic!("Invalid file: {value}"),
         }
     }
 }
-

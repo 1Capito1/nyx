@@ -45,7 +45,7 @@ impl Default for Board {
             black_queen: BitBoard::default(),
             black_king: BitBoard::default(),
 
-            castling_rights: CastlingRights::new(true, true, true, true),
+            castling_rights: CastlingRights::new(false, false, false, false),
 
             en_passant_square: None,
 
@@ -73,8 +73,7 @@ impl Board {
     }
 
     pub fn place_piece(&mut self, piece: impl Into<Piece>, position: &Position) {
-        let board = self.match_board(piece.into());
-        board.place(position);
+        self.match_board(piece.into()).place(position);
     }
 
 

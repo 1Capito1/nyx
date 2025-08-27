@@ -8,7 +8,7 @@ use crate::errors::{MoveError::*, MoveError};
 
 use super::{Move, UndoMove};
 
-const KNIGHT_OFFSETS: [i8; 8] = [15, 17, 6, 10, -6, -10, -15, -17];
+pub(crate) const KNIGHT_OFFSETS: [i8; 8] = [15, 17, 6, 10, -6, -10, -15, -17];
 
 impl Board {
     pub fn knight_move(&mut self, move_info: Move) -> Result<UndoMove, MoveError> {

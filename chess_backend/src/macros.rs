@@ -8,6 +8,15 @@ macro_rules! res_assert {
                 panic!();
             }
         }
-    }
+    };
+    ($expr:expr, err) => {
+        match $expr {
+            Ok(a) => {
+                eprintln!("❌ Not Error");
+                panic!();
+            }
+            Err(_) => {},
+        }
+    };
 }
 

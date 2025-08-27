@@ -1,3 +1,5 @@
+use crate::bit_board::FileChars;
+
 use super::rank::Rank;
 use super::{File, Offset, Position};
 use derive_more::Deref;
@@ -17,6 +19,12 @@ impl Square {
         let value = position.square_num();
         Square::new(value)
     }
+
+    pub(crate) fn from_notation(file_letter: FileChars, rank_num: u8) -> Self {
+        assert!(&(1..=8).contains(&rank_num), "from_notation OOB");
+        Position::new(File(file_letter as u8), Rank(rank_num - 1)).to_square()
+    }
+
     pub(crate) fn to_position(self) -> Position {
         Position::new(File(*self % 8), Rank(*self / 8))
     }

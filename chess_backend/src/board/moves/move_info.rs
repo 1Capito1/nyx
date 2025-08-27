@@ -9,7 +9,7 @@ pub(crate) enum SpecialMove {
     Castling{rook_to: u8, rook_from: u8},
 }
 
-#[derive(TypedBuilder)]
+#[derive(TypedBuilder, Debug)]
 pub(crate) struct Move {
     #[builder(default, setter(strip_option))]
     promotion: Option<Piece>,

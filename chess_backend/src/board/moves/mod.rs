@@ -6,6 +6,7 @@ mod rook;
 mod bishop;
 mod king;
 mod queen;
+mod check;
 
 pub use move_unchecked::*;
 pub use pawn::*;

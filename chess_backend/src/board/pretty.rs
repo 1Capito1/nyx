@@ -60,6 +60,6 @@ impl Board {
             }
         }
         BitBoard::print_bitboard_rep(&board_rep);
-        return board_rep;
+        board_rep
     }
 }

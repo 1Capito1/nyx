@@ -1,12 +1,25 @@
+use std::fmt::Display;
+
 use super::rank::Rank;
 use super::{File, FileChars, Square};
 use derive_more::Display;
 
-#[derive(Debug, Clone, Copy, Display)]
-#[display("{file}, {rank}")]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct Position {
     file: File,
     rank: Rank,
+}
+
+impl Display for Position {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({}, {})", Into::<FileChars>::into(self.file), self.rank)
+    }
+}
+
+impl Into<Square> for Position {
+    fn into(self) -> Square {
+        self.to_square()
+    }
 }
 
 impl Position {
@@ -18,7 +31,14 @@ impl Position {
     }
 
     pub(crate) fn from_notation(file_letter: FileChars, rank_num: u8) -> Self {
+        assert!(&(1..=8).contains(&rank_num), "from_notation OOB");
         Position::new(File(file_letter as u8), Rank(rank_num - 1))
+    }
+
+    pub(crate) fn diff(&self, to: &Position) -> (i8, i8) { 
+        let f_diff = (self.file().0 as i8 - to.file().0 as i8).abs();
+        let r_diff = (self.rank().0 as i8 - to.rank().0 as i8).abs();
+        (f_diff, r_diff)
     }
 
     pub(crate) fn file(&self) -> File {

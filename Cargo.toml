@@ -6,3 +6,4 @@ members = [
     "chess_frontend_bevy"
 ]
 resolver = "2"
+
