@@ -41,7 +41,10 @@ mod tests {
         let mv = Move::builder().move_from(from).move_to(to_double).build();
         let undo = game.board.move_pawn(mv);
         game.board.pretty_print();
-        assert!(undo.is_err(), "Pawn double push should fail due to blocking piece");
+        assert!(
+            undo.is_err(),
+            "Pawn double push should fail due to blocking piece"
+        );
     }
 
     #[test]
@@ -70,7 +73,7 @@ mod tests {
         let mut game = GameState::from_fen("8/8/8/3p4/4P3/8/8/8 w - - 0 1");
 
         let from = Square::from_position(&Position::from_notation(FileChars::E, 4)); // e4
-        let to = Square::from_position(&Position::from_notation(FileChars::D, 5));   // d5
+        let to = Square::from_position(&Position::from_notation(FileChars::D, 5)); // d5
 
         let mv = Move::builder().move_from(from).move_to(to).build();
         let result = game.board.move_pawn(mv);
@@ -115,7 +118,7 @@ mod tests {
         game.board.pretty_print();
 
         let from = Square::from_position(&Position::new(File(3), Rank(4))); // d4
-        let to = Square::from_position(&Position::new(File(2), Rank(5)));   // c5
+        let to = Square::from_position(&Position::new(File(2), Rank(5))); // c5
 
         let mv = Move::builder().move_from(from).move_to(to).build();
         let result = game.board.move_pawn(mv);
@@ -131,7 +134,7 @@ mod tests {
         let mut game = GameState::from_fen("8/8/5P2/4P3/8/8/8/8 w - - 0 1");
 
         let from = Square::from_position(&Position::new(File(4), Rank(4))); // e4
-        let to = Square::from_position(&Position::new(File(5), Rank(5)));   // f5
+        let to = Square::from_position(&Position::new(File(5), Rank(5))); // f5
 
         let mv = Move::builder().move_from(from).move_to(to).build();
         let result = game.board.move_pawn(mv);
@@ -159,7 +162,7 @@ mod tests {
         let mut game = GameState::from_fen("8/8/8/1p6/P7/8/8/8 w - - 0 1");
 
         let from = Square::from_position(&Position::from_notation(FileChars::A, 4)); // a4
-        let to   = Square::from_position(&Position::from_notation(FileChars::B, 5)); // b5
+        let to = Square::from_position(&Position::from_notation(FileChars::B, 5)); // b5
 
         let mv = Move::builder().move_from(from).move_to(to).build();
         let result = game.board.move_pawn(mv);
@@ -174,7 +177,7 @@ mod tests {
         game.board.pretty_print();
 
         let from = Square::from_position(&Position::from_notation(FileChars::H, 4)); // h4
-        let to   = Square::from_position(&Position::from_notation(FileChars::G, 5)); // g5
+        let to = Square::from_position(&Position::from_notation(FileChars::G, 5)); // g5
 
         let mv = Move::builder().move_from(from).move_to(to).build();
         let result = game.board.move_pawn(mv);
@@ -209,7 +212,7 @@ mod tests {
         game.board.pretty_print();
 
         // Check that the piece at G8 is now a white queen
-        let promoted = game.board.get_cached_piece_at(&to.to_position());
+        let promoted = game.board.get_cached_piece_at(to);
         assert_eq!(
             promoted,
             Some(Piece::White(PieceType::Queen)),
@@ -243,7 +246,7 @@ mod tests {
         println!("After white promotion without capture:");
         game.board.pretty_print();
 
-        let promoted = game.board.get_cached_piece_at(&to.to_position());
+        let promoted = game.board.get_cached_piece_at(to);
         assert_eq!(promoted, Some(Piece::White(PieceType::Queen)));
     }
 
@@ -270,7 +273,7 @@ mod tests {
         println!("After black promotion with capture:");
         game.board.pretty_print();
 
-        let promoted = game.board.get_cached_piece_at(&to.to_position());
+        let promoted = game.board.get_cached_piece_at(to);
         assert_eq!(promoted, Some(Piece::Black(PieceType::Queen)));
     }
 
@@ -290,12 +293,10 @@ mod tests {
             // no promotion() call here
             .build();
 
-
         let result = game.board.move_pawn(mv);
         println!("After illegal promotion without specifying piece:");
         game.board.pretty_print();
         res_assert!(result);
-
     }
 
     #[test]
@@ -307,7 +308,7 @@ mod tests {
         let expected = GameState::from_fen("q7/8/8/8/8/8/8/8 b - - 0 1");
 
         let from = Square::from_position(&Position::from_notation(FileChars::A, 2)); // a2
-        let to = Square::from_position(&Position::from_notation(FileChars::A, 1));   // a1
+        let to = Square::from_position(&Position::from_notation(FileChars::A, 1)); // a1
 
         let mv = Move::builder()
             .move_from(from)
@@ -316,13 +317,16 @@ mod tests {
             .build();
 
         let result = game.board.move_pawn(mv);
-        res_assert!(result);
 
         println!("After black promotion without capture:");
         game.board.pretty_print();
 
-        let promoted = game.board.get_cached_piece_at(&to.to_position());
-        assert_eq!(promoted, Some(Piece::Black(PieceType::Queen)), "Expected a black queen at A1 after promotion");
+        let promoted = game.board.get_cached_piece_at(to);
+        assert_eq!(
+            promoted,
+            Some(Piece::Black(PieceType::Queen)),
+            "Expected a black queen at A1 after promotion"
+        );
     }
 
     #[test]
@@ -340,8 +344,15 @@ mod tests {
         game.board.pretty_print();
         res_assert!(result);
 
-        assert_eq!(game.board.get_cached_piece_at(&from), None); // from
-        assert_eq!(game.board.get_cached_piece_at(&Position::from_notation(FileChars::D, 5)), None); // captured
-        assert_eq!(game.board.get_cached_piece_at(&to), Some(Piece::White(PieceType::Pawn))); // to
+        assert_eq!(game.board.get_cached_piece_at(from), None); // from
+        assert_eq!(
+            game.board
+                .get_cached_piece_at(Position::from_notation(FileChars::D, 5)),
+            None
+        ); // captured
+        assert_eq!(
+            game.board.get_cached_piece_at(to),
+            Some(Piece::White(PieceType::Pawn))
+        ); // to
     }
 }

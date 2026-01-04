@@ -28,14 +28,14 @@ mod tests {
 
         assert_eq!(
             game.board
-                .get_cached_piece_at(&Position::from_notation(FileChars::G, 1))
+                .get_cached_piece_at(Position::from_notation(FileChars::G, 1))
                 .unwrap()
                 .get_type(),
             PieceType::King
         );
         assert_eq!(
             game.board
-                .get_cached_piece_at(&Position::from_notation(FileChars::F, 1))
+                .get_cached_piece_at(Position::from_notation(FileChars::F, 1))
                 .unwrap()
                 .get_type(),
             PieceType::Rook
@@ -122,14 +122,14 @@ mod tests {
 
         assert_eq!(
             game.board
-                .get_cached_piece_at(&Position::from_notation(FileChars::G, 8))
+                .get_cached_piece_at(Position::from_notation(FileChars::G, 8))
                 .unwrap()
                 .get_type(),
             PieceType::King
         );
         assert_eq!(
             game.board
-                .get_cached_piece_at(&Position::from_notation(FileChars::F, 8))
+                .get_cached_piece_at(Position::from_notation(FileChars::F, 8))
                 .unwrap()
                 .get_type(),
             PieceType::Rook
@@ -149,14 +149,14 @@ mod tests {
 
         assert_eq!(
             game.board
-                .get_cached_piece_at(&Position::from_notation(FileChars::C, 8))
+                .get_cached_piece_at(Position::from_notation(FileChars::C, 8))
                 .unwrap()
                 .get_type(),
             PieceType::King
         );
         assert_eq!(
             game.board
-                .get_cached_piece_at(&Position::from_notation(FileChars::D, 8))
+                .get_cached_piece_at(Position::from_notation(FileChars::D, 8))
                 .unwrap()
                 .get_type(),
             PieceType::Rook

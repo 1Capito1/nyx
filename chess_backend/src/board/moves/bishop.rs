@@ -1,5 +1,5 @@
-use crate::board::Board;
 use crate::board::PieceType::Bishop;
+use crate::board::{Board, UndoChange};
 use crate::errors::MoveError;
 use crate::ray::{Direction, Ray};
 use crate::Position;
@@ -11,10 +11,10 @@ impl Board {
         let current_pos = move_info.move_from().to_position();
         let pos_to = move_info.move_to().to_position();
 
-
-        let current_piece = self.get_cached_piece_at(&current_pos)
+        let current_piece = self
+            .get_cached_piece_at(current_pos)
             .ok_or(MoveError::PieceNotFound(current_pos))?;
-        let piece_at = self.get_cached_piece_at(&pos_to);
+        let piece_at = self.get_cached_piece_at(pos_to);
 
         if !current_piece.is_type(Bishop) {
             return Err(MoveError::IncorrectPiece(Bishop, current_piece.get_type()));
@@ -28,7 +28,7 @@ impl Board {
             &current_pos,
             &pos_to,
             is_bishop_move,
-            MoveError::InvalidMove(Bishop, current_pos, pos_to)
+            MoveError::InvalidMove(Bishop, current_pos, pos_to),
         )?;
 
         println!("{dir:?}");
@@ -37,11 +37,21 @@ impl Board {
             .take_while(|x| *x != pos_to.to_square())
             .inspect(|s| println!("{s:?}"))
             .map(|s| s.to_position())
-            .find(|pos| self.get_cached_piece_at(pos).is_some()) 
+            .find(|pos| self.get_cached_piece_at(*pos).is_some())
         {
-            return Err(MoveError::PieceBlockingMovement(current_pos, blocking_piece));
+            return Err(MoveError::PieceBlockingMovement(
+                current_pos,
+                blocking_piece,
+            ));
         }
-        Ok(self.move_piece_unchecked(&move_info))
+        self.move_piece_unchecked(&move_info);
+        Ok(UndoMove::new(
+            vec![
+                UndoChange::new(current_pos.to_square(), Some(current_piece)),
+                UndoChange::new(pos_to.to_square(), piece_at),
+            ],
+            None,
+        ))
     }
 }
 

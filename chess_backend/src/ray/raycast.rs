@@ -23,7 +23,6 @@ impl Iterator for Ray {
     type Item = Square;
 
     fn next(&mut self) -> Option<Square> {
-        println!("next called");
         // 1) decode current index into file/rank
         let idx = self.current as u8;
         let file = (idx % 8) as i8; // 0..7 = files a..h

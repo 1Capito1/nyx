@@ -14,15 +14,19 @@ impl BitBoard {
             if bits == 0 {
                 return None;
             }
+            #[allow(clippy::cast_possible_truncation)] // cant be more than 64 zeros
             let idx = bits.trailing_zeros() as u8;
             bits &= bits - 1;
             Some(idx)
         })
     }
-    pub fn bits(&self) -> &u64 {
+    pub fn iter_squares(self) -> impl Iterator<Item = Square> {
+        self.iter_set_bits().map(Square)
+    }
+    pub const fn bits(&self) -> &u64 {
         &self.0
     }
-    pub fn bits_mut(&mut self) -> &mut u64 {
+    pub const fn bits_mut(&mut self) -> &mut u64 {
         &mut self.0
     }
     pub fn place(&mut self, position: &Position) {
@@ -46,10 +50,11 @@ impl BitBoard {
             print!("{}   ", rank + 1);
             // start from rank 8
             for file in 0..8 {
+                #[allow(clippy::cast_sign_loss)]
                 let i = rank as usize * WIDTH + file;
                 print!("{} ", rep[i]);
             }
-            println!()
+            println!();
         }
         println!("\n    A B C D E F G H ");
     }

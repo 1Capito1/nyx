@@ -1,4 +1,4 @@
-use crate::board::{piece, Board};
+use crate::board::{piece, Board, PieceType, UndoChange};
 use crate::errors::MoveError;
 use crate::ray::{self, Direction, Ray};
 use crate::PieceType::Rook;
@@ -19,9 +19,9 @@ impl Board {
         let pos_to = move_info.move_to().to_position();
 
         let current_piece = self
-            .get_cached_piece_at(&current_pos)
+            .get_cached_piece_at(current_pos)
             .ok_or(MoveError::PieceNotFound(current_pos))?;
-        let piece_at = self.get_cached_piece_at(&pos_to);
+        let piece_at = self.get_cached_piece_at(pos_to);
 
         if !current_piece.is_type(Rook) {
             return Err(MoveError::IncorrectPiece(Rook, current_piece.get_type()));
@@ -41,14 +41,22 @@ impl Board {
         if let Some(blocking_piece) = Ray::new(current_pos.to_square(), dir)
             .take_while(|x| *x != pos_to.to_square())
             .map(|s| s.to_position())
-            .find(|pos| self.get_cached_piece_at(pos).is_some())
+            .find(|pos| self.get_cached_piece_at(*pos).is_some())
         {
             return Err(MoveError::PieceBlockingMovement(
                 current_pos,
                 blocking_piece,
             ));
         }
-        Ok(self.move_piece_unchecked(&move_info))
+
+        self.move_piece_unchecked(&move_info);
+
+        let undo_change = vec![
+            UndoChange::new(move_info.move_from(), Some(current_piece)),
+            UndoChange::new(move_info.move_to(), piece_at),
+        ];
+
+        Ok(UndoMove::new(undo_change, None))
     }
 }
 

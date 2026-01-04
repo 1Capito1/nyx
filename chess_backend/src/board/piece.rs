@@ -2,6 +2,7 @@ use derive_more::Display;
 use PieceType::*;
 
 use crate::bit_board::Offset;
+use crate::board::{Color, KNIGHT_OFFSETS};
 use crate::{Position, Rank};
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Display)]
 pub enum PieceType {
@@ -77,9 +78,16 @@ pub enum Piece {
 }
 
 impl Piece {
-    pub(crate) fn get_type(&self) -> PieceType {
+    pub(crate) const fn get_color(self) -> Color {
+        use Piece::{Black, White};
         match self {
-            Self::White(t) | Self::Black(t) => *t,
+            White(_) => Color::White,
+            Black(_) => Color::Black,
+        }
+    }
+    pub(crate) const fn get_type(self) -> PieceType {
+        match self {
+            Self::White(t) | Self::Black(t) => t,
         }
     }
 
@@ -119,7 +127,7 @@ impl Piece {
     }
 
     #[must_use]
-    pub fn pawn_step<T: Offset>(&self, t: T) -> Option<<T as Offset>::Output> { 
+    pub fn pawn_step<T: Offset>(&self, t: T) -> Option<<T as Offset>::Output> {
         debug_assert_eq!(self.get_type(), PieceType::Pawn);
         match self {
             Piece::White(_) => t.offset(1),
@@ -129,9 +137,9 @@ impl Piece {
 
     #[must_use]
     pub fn is_same_color(&self, other: &Self) -> bool {
-        matches!((self, other),
-            (Piece::White(_), Piece::White(_)) |
-            (Piece::Black(_), Piece::Black(_)),
+        matches!(
+            (self, other),
+            (Piece::White(_), Piece::White(_)) | (Piece::Black(_), Piece::Black(_)),
         )
     }
 
@@ -141,6 +149,67 @@ impl Piece {
             return true;
         }
         false
+    }
+
+    /// basic check to determine if piece at
+    pub(crate) fn attacks(&self, attacking_square: &Position, pos: &Position) -> bool {
+        match self.get_type() {
+            Pawn => self.pawn_can_attack(attacking_square, pos),
+            Rook => Self::rook_can_attack(attacking_square, pos),
+            Knight => Self::knight_can_attack(attacking_square, pos),
+            Bishop => Self::bishop_can_attack(attacking_square, pos),
+            King => Self::king_can_attack(attacking_square, pos),
+            Queen => Self::queen_can_attack(attacking_square, pos),
+        }
+    }
+
+    pub(crate) fn pawn_can_attack(&self, pos: &Position, other: &Position) -> bool {
+        let attack_squares_offsets: [(i8, i8); 2] = match self {
+            Piece::White(_) => [(-1, 1), (1, 1)],
+            Piece::Black(_) => [(-1, -1), (1, -1)],
+        };
+
+        for offset in attack_squares_offsets {
+            if let Some(position) = pos.offset_pos(offset) {
+                if position.to_square() == other.to_square() {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
+    fn rook_can_attack(to_position: &Position, pos: &Position) -> bool {
+        let (df, dr) = to_position.diff(pos);
+
+        (df == 0) ^ (dr == 0)
+    }
+
+    fn knight_can_attack(to_position: &Position, pos: &Position) -> bool {
+        for offset in KNIGHT_OFFSETS {
+            if let Some(position) = to_position.to_square().offset(offset) {
+                if position == pos.to_square() {
+                    println!("knight can attack");
+                    return true;
+                }
+            }
+        }
+        println!("false");
+        false
+    }
+
+    fn bishop_can_attack(to_position: &Position, pos: &Position) -> bool {
+        let (df, dr) = to_position.diff(pos);
+        df.abs() == dr.abs()
+    }
+
+    fn king_can_attack(to_position: &Position, pos: &Position) -> bool {
+        let (df, dr) = to_position.diff(pos);
+        df.abs().max(dr.abs()) == 1
+    }
+
+    fn queen_can_attack(to_position: &Position, pos: &Position) -> bool {
+        Self::rook_can_attack(to_position, pos) || Self::bishop_can_attack(to_position, pos)
     }
 }
 

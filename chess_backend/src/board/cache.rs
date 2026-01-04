@@ -1,12 +1,12 @@
 use crate::bit_board::Square;
+use crate::board::Board;
 use crate::board::Piece;
 use crate::Position;
-use crate::board::Board;
-
 
 impl Board {
-   pub fn get_cached_piece_at(&self, position: &Position) -> Option<Piece> {
-        let square = Square::from_position(position);
+    pub fn get_cached_piece_at(&self, position: impl Into<Position>) -> Option<Piece> {
+        let pos = position.into();
+        let square = Square::from_position(&pos);
         self.board_rep()[*square as usize]
     }
 

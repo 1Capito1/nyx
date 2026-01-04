@@ -1,11 +1,16 @@
-use crate::bit_board::{BitBoard, FileChars, Offset, Position, Square, Rank};
-use crate::errors::MoveError;
-use crate::board::{Move, UndoMove, SpecialMove};
+use crate::bit_board::{BitBoard, FileChars, Offset, Position, Rank, Square};
 use crate::board::PieceType::*;
 use crate::board::{FenNotation, Piece, PieceType};
+use crate::board::{Move, SpecialMove, UndoMove};
+use crate::errors::MoveError;
 
 use super::CastlingRights;
 
+#[derive(PartialEq, Eq)]
+pub(crate) enum Color {
+    White,
+    Black,
+}
 
 pub(crate) struct Board {
     pub(crate) white_pawn: BitBoard,
@@ -24,6 +29,7 @@ pub(crate) struct Board {
 
     pub(crate) en_passant_square: Option<Square>,
     pub(crate) castling_rights: CastlingRights,
+    pub(crate) side_to_move: Color,
 
     board_rep: [Option<Piece>; 64],
 }
@@ -44,6 +50,8 @@ impl Default for Board {
             black_bishop: BitBoard::default(),
             black_queen: BitBoard::default(),
             black_king: BitBoard::default(),
+
+            side_to_move: Color::White,
 
             castling_rights: CastlingRights::new(false, false, false, false),
 
@@ -72,14 +80,34 @@ impl Board {
         }
     }
 
+    pub fn get_bitboard(&self, piece_type: PieceType, color: &Color) -> BitBoard {
+        match color {
+            Color::White => match piece_type {
+                Pawn => self.white_pawn,
+                Rook => self.white_rook,
+                Knight => self.white_knight,
+                Bishop => self.white_bishop,
+                King => self.white_king,
+                Queen => self.white_queen,
+            },
+            Color::Black => match piece_type {
+                Pawn => self.black_pawn,
+                Rook => self.black_rook,
+                Knight => self.black_knight,
+                Bishop => self.black_bishop,
+                King => self.black_king,
+                Queen => self.black_queen,
+            },
+        }
+    }
+
     pub fn place_piece(&mut self, piece: impl Into<Piece>, position: &Position) {
         self.match_board(piece.into()).place(position);
     }
 
-
     /// uses cached piece to determine if a piece is at [```Position```]
     pub fn collides(&self, pos: &Position) -> bool {
-        self.get_cached_piece_at(pos).is_some()
+        self.get_cached_piece_at(*pos).is_some()
     }
 
     pub(crate) fn board_rep_mut(&mut self) -> &mut [Option<Piece>; 64] {

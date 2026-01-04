@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+use crate::bit_board::Offset;
+
 use super::rank::Rank;
 use super::{File, FileChars, Square};
 use derive_more::Display;
@@ -16,9 +18,15 @@ impl Display for Position {
     }
 }
 
-impl Into<Square> for Position {
-    fn into(self) -> Square {
-        self.to_square()
+impl From<Position> for Square {
+    fn from(val: Position) -> Self {
+        val.to_square()
+    }
+}
+
+impl From<Square> for Position {
+    fn from(value: Square) -> Self {
+        value.to_position()
     }
 }
 
@@ -35,10 +43,17 @@ impl Position {
         Position::new(File(file_letter as u8), Rank(rank_num - 1))
     }
 
-    pub(crate) fn diff(&self, to: &Position) -> (i8, i8) { 
+    pub(crate) fn diff(&self, to: &Position) -> (i8, i8) {
         let f_diff = (self.file().0 as i8 - to.file().0 as i8).abs();
         let r_diff = (self.rank().0 as i8 - to.rank().0 as i8).abs();
         (f_diff, r_diff)
+    }
+
+    pub(crate) fn offset_pos(&self, offset: (i8, i8)) -> Option<Position> {
+        let nf = self.file.offset(offset.0)?;
+        let nr = self.rank.offset(offset.1)?;
+
+        Some(Position::new(nf, nr))
     }
 
     pub(crate) fn file(&self) -> File {

@@ -1,12 +1,12 @@
 use typed_builder::TypedBuilder;
 
 use crate::bit_board::Square;
-use crate::board::Piece;
+use crate::board::{Board, Piece};
 
 pub(crate) enum SpecialMove {
     Promotion(Piece),
     EnPassant(Square),
-    Castling{rook_to: u8, rook_from: u8},
+    Castling { rook_to: u8, rook_from: u8 },
 }
 
 #[derive(TypedBuilder, Debug)]
@@ -19,7 +19,11 @@ pub(crate) struct Move {
 
 impl Move {
     pub(crate) fn new(promotion: Option<Piece>, move_to: Square, move_from: Square) -> Self {
-        Self { promotion, move_to, move_from }
+        Self {
+            promotion,
+            move_to,
+            move_from,
+        }
     }
 
     pub(crate) fn promotion(&self) -> Option<Piece> {
@@ -38,28 +42,38 @@ impl Move {
 #[derive(TypedBuilder)]
 pub(crate) struct UndoMove {
     #[builder(default, setter(into))]
-    captured_piece: Option<Piece>,
-    move_to: Square,
-    move_from: Square,
+    undo: Vec<UndoChange>,
     #[builder(default)]
     special: Option<SpecialMove>,
 }
 
+#[derive(Clone)]
+pub(crate) struct UndoChange {
+    at: Square,
+    piece_before: Option<Piece>,
+}
+
+impl UndoChange {
+    pub(crate) fn new(at: Square, piece_before: Option<Piece>) -> Self {
+        Self { at, piece_before }
+    }
+
+    pub(crate) fn at(&self) -> Square {
+        self.at
+    }
+
+    pub(crate) fn piece_before(&self) -> Option<Piece> {
+        self.piece_before
+    }
+}
+
 impl UndoMove {
-    pub(crate) fn new(captured_piece: Option<Piece>, move_to: Square, move_from: Square, special: Option<SpecialMove>) -> Self {
-        Self { captured_piece, move_to, move_from, special }
+    pub(crate) fn new(undo: Vec<UndoChange>, special: Option<SpecialMove>) -> Self {
+        Self { undo, special }
     }
 
-    pub(crate) fn captured_piece(&self) -> Option<Piece> {
-        self.captured_piece
-    }
-
-    pub(crate) fn move_to(&self) -> Square {
-        self.move_to
-    }
-
-    pub(crate) fn move_from(&self) -> Square {
-        self.move_from
+    pub const fn get_changes(&self) -> &Vec<UndoChange> {
+        &self.undo
     }
 
     pub(crate) fn special(&self) -> Option<&SpecialMove> {
@@ -73,5 +87,3 @@ impl UndoMove {
         self.special = special;
     }
 }
-
-

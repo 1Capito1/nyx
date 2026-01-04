@@ -3,7 +3,7 @@ use crate::board::Board;
 use crate::board::FenNotation;
 
 const VALID_FEN_PEICE_NOTATIONS: [char; 12] =
-['p', 'n', 'b', 'r', 'q', 'k', 'P', 'N', 'B', 'R', 'Q', 'K'];
+    ['p', 'n', 'b', 'r', 'q', 'k', 'P', 'N', 'B', 'R', 'Q', 'K'];
 
 enum Player {
     White(Agent),
@@ -12,7 +12,7 @@ enum Player {
 
 enum Agent {
     Ai,
-    Human
+    Human,
 }
 
 pub struct GameState {
@@ -30,7 +30,7 @@ pub struct FenState<'a> {
 }
 
 impl<'a> FenState<'a> {
-    pub fn new(string: &'a str) -> FenState<'a> {
+    pub fn new(string: &'a str) -> Self {
         let mut sections = string.split_whitespace();
         Self {
             board_str: sections.next().expect("Missing FEN board"),
@@ -44,15 +44,14 @@ impl<'a> FenState<'a> {
 }
 
 impl GameState {
+    #[allow(clippy::cast_possible_truncation)]
     fn parse_board(board: &mut Board, board_str: &str) {
         let mut rank: Rank = Rank(7);
         let mut file: File = File(0);
         for c in board_str.chars() {
             match c {
                 '/' => {
-                    if file != File(8) {
-                        panic!("Too few squares in rank {}", rank);
-                    }
+                    assert!((file == File(8)), "Too few squares in rank {rank}");
                     rank = rank.checked_sub(Rank(1)).expect("Too many ranks");
                     file = File(0);
                 }
@@ -67,9 +66,10 @@ impl GameState {
                 }
             }
         }
-        if rank != Rank(0) || file != File(8) {
-            panic!("FEN parsing error: final rank is invalid");
-        }
+        assert!(
+            !(rank != Rank(0) || file != File(8)),
+            "FEN parsing error: final rank is invalid"
+        );
     }
 
     fn set_active_color(board: &mut Board, active_color: &str) -> Player {
@@ -85,7 +85,9 @@ impl GameState {
     }
 
     fn set_en_passant_square(board: &mut Board, en_passant_square: &str) {
-        board.en_passant_square = if en_passant_square != "-" {
+        board.en_passant_square = if en_passant_square == "-" {
+            None
+        } else {
             let bytes = en_passant_square.as_bytes();
             assert_eq!(bytes.len(), 2, "Invalid en passant square length");
             let file = File(bytes[0] - b'a');
@@ -93,7 +95,7 @@ impl GameState {
             let pos = Position::new(file, rank);
 
             Some(pos.to_square())
-        } else { None };
+        };
     }
 
     pub fn from_fen(string: &str) -> Self {

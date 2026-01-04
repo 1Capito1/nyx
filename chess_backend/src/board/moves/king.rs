@@ -1,26 +1,22 @@
 use crate::bit_board::{FileChars, Square};
 use crate::board::PieceType::King;
-use crate::board::{Board, CastlingSide, Piece};
+use crate::board::{Board, CastlingSide, Piece, UndoChange};
 use crate::errors::MoveError;
 use crate::ray::{Direction, Ray};
 use crate::{Position, Rank};
 
 use super::{Move, UndoMove};
 
-type KingUndo = Result<[Option<UndoMove>; 2], MoveError>;
-
 impl Board {
-    pub(crate) fn move_king(&mut self, move_info: Move) -> KingUndo {
+    pub(crate) fn move_king(&mut self, move_info: Move) -> Result<UndoMove, MoveError> {
         let current_pos = move_info.move_from().to_position();
         let pos_to = move_info.move_to().to_position();
 
-        let mut ret: [Option<UndoMove>; 2] = [None, None];
-
         let current_piece = self
-            .get_cached_piece_at(&current_pos)
+            .get_cached_piece_at(current_pos)
             .ok_or(MoveError::PieceNotFound(current_pos))?;
 
-        let piece_at = self.get_cached_piece_at(&pos_to);
+        let piece_at = self.get_cached_piece_at(pos_to);
 
         if !current_piece.is_type(King) {
             return Err(MoveError::IncorrectPiece(King, current_piece.get_type()));
@@ -34,17 +30,24 @@ impl Board {
             return Err(MoveError::InvalidMove(King, current_pos, pos_to));
         }
 
+        let mut undos = Vec::with_capacity(3);
+        let mut castle = false;
+        let rook_moved_pos = Square(0);
         if let Some(side) = self.is_castle(&current_pos, &pos_to) {
+            castle = true;
             let rank = move_info.move_to().to_position().rank();
-            ret[1] = Some(self.castle_rook(side, rank));
+            let undo_change = self.castle_rook(side, rank);
+            undos.extend_from_slice(&undo_change);
         }
 
-        ret[0] = Some(self.move_piece_unchecked(&move_info));
+        self.move_piece_unchecked(&move_info);
 
-        Ok(ret)
+        undos.push(UndoChange::new(move_info.move_from(), Some(current_piece)));
+
+        Ok(UndoMove::new(undos, None))
     }
 
-    fn castle_rook(&mut self, side: CastlingSide, rank: Rank) -> UndoMove {
+    fn castle_rook<'a>(&mut self, side: CastlingSide, rank: Rank) -> [UndoChange; 2] {
         let (rook_from_file, rook_to_file) = match side {
             CastlingSide::KingSide => (FileChars::H, FileChars::F),
             CastlingSide::QueenSide => (FileChars::A, FileChars::D),
@@ -59,7 +62,14 @@ impl Board {
             .move_from(square_start.to_square())
             .build();
 
-        self.move_piece_unchecked(&castling_move)
+        self.move_piece_unchecked(&castling_move);
+
+        let rook = self.get_cached_piece_at(square_start);
+
+        [
+            UndoChange::new(square_end.to_square(), None),
+            UndoChange::new(square_start.to_square(), rook),
+        ]
     }
 
     fn is_normal_move(from: &Position, to: &Position) -> bool {
@@ -90,7 +100,7 @@ impl Board {
             if idx == *end {
                 break;
             }
-            if self.get_cached_piece_at(&idx.to_position()).is_some() {
+            if self.get_cached_piece_at(idx).is_some() {
                 println!("idx: {}", idx.to_position());
                 return true;
             }
@@ -133,7 +143,7 @@ impl Board {
             C => CastlingSide::QueenSide,
             _ => return None,
         };
-        let piece = self.get_cached_piece_at(from).unwrap();
+        let piece = self.get_cached_piece_at(*from).unwrap();
 
         let is_same_rank = dr == 0;
         let is_castling_attempt = is_same_rank && df.abs() == 2;
