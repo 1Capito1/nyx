@@ -26,7 +26,6 @@ impl Board {
             let board = self.match_board(piece);
             board.clear_bit(square_from);
             board.set_bit(square_to);
-            self.update_cache();
         } else {
             panic!("Piece not found");
         }

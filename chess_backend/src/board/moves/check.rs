@@ -54,10 +54,7 @@ impl Board {
     }
     // with regards to enemy_color, piece type does not matter
     pub(crate) fn is_check(&self, pos: &Position, enemy_color: Piece) -> bool {
-        let enemy_pieces_in_attack_squares =
-            self.get_attack_squares(pos.to_square(), enemy_color);
-
-        dbg!(&enemy_pieces_in_attack_squares);
+        let enemy_pieces_in_attack_squares = self.get_attack_squares(pos.to_square(), enemy_color);
 
         for square in enemy_pieces_in_attack_squares {
             let piece = self

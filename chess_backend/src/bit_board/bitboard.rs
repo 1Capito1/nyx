@@ -4,7 +4,7 @@ use crate::bit_board::{File, FileChars};
 
 use super::{Position, Square};
 
-#[derive(Default, Clone, Copy, BitOr)]
+#[derive(Default, Clone, Copy, BitOr, Debug)]
 pub(crate) struct BitBoard(u64);
 
 impl BitBoard {

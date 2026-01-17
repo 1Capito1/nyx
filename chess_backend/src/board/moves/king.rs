@@ -47,7 +47,7 @@ impl Board {
         Ok(UndoMove::new(undos, None))
     }
 
-    fn castle_rook<'a>(&mut self, side: CastlingSide, rank: Rank) -> [UndoChange; 2] {
+    fn castle_rook(&mut self, side: CastlingSide, rank: Rank) -> [UndoChange; 2] {
         let (rook_from_file, rook_to_file) = match side {
             CastlingSide::KingSide => (FileChars::H, FileChars::F),
             CastlingSide::QueenSide => (FileChars::A, FileChars::D),

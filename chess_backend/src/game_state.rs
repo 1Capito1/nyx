@@ -111,7 +111,7 @@ impl GameState {
 
         Self::set_en_passant_square(&mut board, state.en_passant_square);
 
-        board.update_cache();
+        board.build_cache();
         // TODO: rest of FEN
         Self { board, player }
     }

@@ -9,20 +9,21 @@ impl Board {
         let pseudo = self.generate_pseudolegal_moves();
 
         for mv in pseudo {
-            let undo = self.try_move(mv.move_from(), mv.move_to()).unwrap();
-            let king_pos = match self.side_to_move {
-                Color::White => self.white_king.iter_squares().nth(0).unwrap().to_position(),
-                Color::Black => self.black_king.iter_squares().nth(0).unwrap().to_position(),
-            };
-            let enemy_color = match self.side_to_move {
-                Color::White => Piece::White(PieceType::Pawn),
-                Color::Black => Piece::Black(PieceType::Pawn),
-            };
-            if self.is_check(&king_pos, enemy_color) {
-                continue;
+            if let Ok(undo) = self.try_move(mv.move_from(), mv.move_to()) {
+                let king_pos = match self.side_to_move {
+                    Color::White => self.white_king.iter_squares().nth(0).unwrap().to_position(),
+                    Color::Black => self.black_king.iter_squares().nth(0).unwrap().to_position(),
+                };
+                let enemy_color = match self.side_to_move {
+                    Color::White => Piece::Black(PieceType::Pawn),
+                    Color::Black => Piece::White(PieceType::Pawn),
+                };
+                if self.is_check(&king_pos, enemy_color) {
+                    continue;
+                }
+                self.undo_move(undo);
+                legals.push(mv);
             }
-            self.undo_move(undo);
-            legals.push(mv);
         }
 
         legals

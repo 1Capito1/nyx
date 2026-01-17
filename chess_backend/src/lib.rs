@@ -85,8 +85,11 @@ fn test_move_piece_unchecked_basic() {
     game.board
         .move_piece_unchecked(&Move::builder().move_from(from).move_to(to).build());
 
+    game.board.build_cache();
     // Check source is empty
     assert_eq!(game.board.get_cached_piece_at(from), None);
+
+    game.board.pretty_print();
 
     // Check destination now has the piece
     assert_eq!(

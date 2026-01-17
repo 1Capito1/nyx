@@ -206,6 +206,7 @@ mod tests {
             .build();
 
         let result = game.board.move_pawn(move_info);
+        game.board.build_cache();
         res_assert!(result);
 
         println!("After promotion with capture:");
@@ -241,6 +242,7 @@ mod tests {
             .build();
 
         let result = game.board.move_pawn(mv);
+        game.board.build_cache();
         res_assert!(result);
 
         println!("After white promotion without capture:");
@@ -269,6 +271,7 @@ mod tests {
 
         let result = game.board.move_pawn(mv);
         res_assert!(result);
+        game.board.build_cache();
 
         println!("After black promotion with capture:");
         game.board.pretty_print();
@@ -318,6 +321,8 @@ mod tests {
 
         let result = game.board.move_pawn(mv);
 
+        game.board.build_cache();
+
         println!("After black promotion without capture:");
         game.board.pretty_print();
 
@@ -341,6 +346,7 @@ mod tests {
             .build();
 
         let result = game.board.move_pawn(mv);
+        game.board.build_cache();
         game.board.pretty_print();
         res_assert!(result);
 

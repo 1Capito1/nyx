@@ -110,7 +110,7 @@ impl Piece {
                 position_from.rank() == Rank(1) && position_to.rank() == Rank(3)
             }
             Piece::Black(_piece_type) => {
-                position_from.rank() == Rank(6) && position_from.rank() == Rank(4)
+                position_from.rank() == Rank(6) && position_to.rank() == Rank(4)
             }
         }
     }

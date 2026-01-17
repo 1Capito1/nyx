@@ -2,7 +2,7 @@ mod bishop;
 mod check;
 mod king;
 mod knight;
-mod move_gen;
+pub mod move_gen;
 mod move_info;
 mod move_unchecked;
 mod pawn;

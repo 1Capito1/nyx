@@ -6,7 +6,7 @@ use crate::errors::MoveError;
 
 use super::CastlingRights;
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Clone, Copy)]
 pub(crate) enum Color {
     White,
     Black,

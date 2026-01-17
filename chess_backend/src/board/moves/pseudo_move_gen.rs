@@ -25,8 +25,8 @@ impl Board {
     fn add_pawn_double_push(&self, pawns: BitBoard, moves: &mut Vec<Move>) {
         for pawn in pawns.iter_squares().map(Square::to_position) {
             let (direction, allowed_rank) = match self.side_to_move {
-                Color::White => (2, 2),
-                Color::Black => (-2, 7),
+                Color::White => (2, 1),
+                Color::Black => (-2, 6),
             };
 
             if pawn.rank() != Rank(allowed_rank) {
@@ -75,6 +75,14 @@ impl Board {
         self.add_pawn_pushes(pawns, moves);
         self.add_pawn_double_push(pawns, moves);
         self.add_pawn_captures(pawns, moves);
+    }
+
+    fn add_pawn_promotions(&self, pawns: BitBoard, moves: &mut Vec<Move>) {}
+
+    fn add_rook_moves(&self, moves: &mut Vec<Move>) {
+        let rooks = self.get_bitboard(PieceType::Rook, &self.side_to_move);
+
+        for rook in rooks.iter_squares() {}
     }
 
     pub(crate) fn generate_pseudolegal_moves(&self) -> Vec<Move> {

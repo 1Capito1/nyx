@@ -1,7 +1,7 @@
 use typed_builder::TypedBuilder;
 
 use crate::bit_board::Square;
-use crate::board::{Board, Piece};
+use crate::board::{Board, Color, Piece};
 
 pub(crate) enum SpecialMove {
     Promotion(Piece),
@@ -45,9 +45,11 @@ pub(crate) struct UndoMove {
     undo: Vec<UndoChange>,
     #[builder(default)]
     special: Option<SpecialMove>,
+    #[builder(default=Color::White)]
+    side_before: Color,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub(crate) struct UndoChange {
     at: Square,
     piece_before: Option<Piece>,
@@ -69,7 +71,11 @@ impl UndoChange {
 
 impl UndoMove {
     pub(crate) fn new(undo: Vec<UndoChange>, special: Option<SpecialMove>) -> Self {
-        Self { undo, special }
+        Self {
+            undo,
+            special,
+            side_before: Color::White,
+        }
     }
 
     pub const fn get_changes(&self) -> &Vec<UndoChange> {
@@ -85,5 +91,12 @@ impl UndoMove {
 
     pub(crate) fn set_special(&mut self, special: Option<SpecialMove>) {
         self.special = special;
+    }
+
+    pub(crate) fn get_side(&self) -> Color {
+        self.side_before
+    }
+    pub(crate) fn set_side(&mut self, side: Color) {
+        self.side_before = side;
     }
 }

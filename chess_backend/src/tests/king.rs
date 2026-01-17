@@ -21,10 +21,10 @@ mod tests {
         let mv = Move::builder().move_from(from).move_to(to).build();
 
         game.board.pretty_print();
-        let result = game.board.move_king(mv);
+        let res = game.board.move_king(mv);
+        game.board.build_cache();
+        res_assert!(res);
         game.board.pretty_print();
-
-        res_assert!(result);
 
         assert_eq!(
             game.board
@@ -116,8 +116,9 @@ mod tests {
         let to = Square::from_notation(FileChars::G, 8);
 
         let mv = Move::builder().move_from(from).move_to(to).build();
-
-        res_assert!(game.board.move_king(mv));
+        let res = game.board.move_king(mv);
+        game.board.build_cache();
+        res_assert!(res);
         game.board.pretty_print();
 
         assert_eq!(
@@ -145,7 +146,9 @@ mod tests {
 
         let mv = Move::builder().move_from(from).move_to(to).build();
 
-        res_assert!(game.board.move_king(mv));
+        let res = game.board.move_king(mv);
+        game.board.build_cache();
+        res_assert!(res);
 
         assert_eq!(
             game.board

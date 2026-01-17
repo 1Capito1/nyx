@@ -1,4 +1,4 @@
-use crate::bit_board::{Offset, Square};
+use crate::bit_board::{BitBoard, Offset, Square};
 use crate::board::{Board, UndoChange};
 use crate::board::{Move, SpecialMove, UndoMove};
 use crate::errors::MoveError;
@@ -57,15 +57,15 @@ impl Board {
                         // promotion and en passant is impossible in normal play,
                         // so returning early is ok
                         self.move_piece_unchecked(move_info);
-                        self.update_cache();
-                        return Ok(UndoMove::new(
+                        let um = UndoMove::new(
                             vec![
                                 UndoChange::new(move_info.move_from(), Some(piece)),
                                 UndoChange::new(move_info.move_to(), None),
                                 UndoChange::new(pos_to.to_square(), Some(p)),
                             ],
                             Some(SpecialMove::EnPassant(pos_to.to_square())),
-                        ));
+                        );
+                        return Ok(um);
                     }
                     return Err(MoveError::PieceNotFound(pawn_pos));
                 } else {
@@ -80,6 +80,7 @@ impl Board {
         }
 
         self.move_piece_unchecked(move_info);
+        let board = self.match_board(piece);
         Ok(UndoMove::new(
             vec![
                 UndoChange::new(move_info.move_from(), Some(piece)),
@@ -92,7 +93,6 @@ impl Board {
     /// checks that piece should be a pawn, but will panic if it isn't, piece
     /// checks should be from the caller
     pub fn move_pawn(&mut self, move_info: Move) -> Result<UndoMove, MoveError> {
-        println!("Move Pawn");
         let from = move_info.move_from();
         let to = move_info.move_to();
         let pos_to = to.to_position();
@@ -126,14 +126,19 @@ impl Board {
                     UndoChange::new(move_info.move_from(), Some(piece)),
                     UndoChange::new(move_info.move_to(), None),
                 ],
-                None,
+                Some(SpecialMove::EnPassant(pos_to.to_square())),
             );
-            undo.set_special(Some(SpecialMove::EnPassant(pos_to.to_square())));
             self.en_passant_square = Some(pos_to.to_square());
         }
         // push
         else if piece.pawn_can_push(&pos_from, &pos_to) {
             if self.collides(&pos_to) {
+                #[cfg(test)]
+                {
+                    //dbg!(&pos_to);
+                    //self.pretty_print();
+                }
+
                 return Err(MoveError::IllegalCollision);
             }
             self.move_piece_unchecked(&move_info);
@@ -170,10 +175,14 @@ impl Board {
                 pos_to.to_position(),
             ))?;
         println!("{piece}");
-        let pawn = self
-            .get_cached_piece_at(pos_to)
-            .expect("Pawn should exist at pos_to");
-        let board = self.match_board(pawn);
+
+        let (pawn, board): (Piece, &mut BitBoard) = if self.white_pawn.is_set(pos_to.0) {
+            (Piece::White(Pawn), &mut self.white_pawn)
+        } else if self.black_pawn.is_set(pos_to.0) {
+            (Piece::Black(Pawn), &mut self.black_pawn)
+        } else {
+            panic!("Pawn should exist at pos_to");
+        };
 
         assert!(pawn.is_same_color(&piece));
         assert!(pawn.is_type(Pawn));
@@ -181,7 +190,6 @@ impl Board {
         board.clear_bit(pos_to);
         let promotion_board = self.match_board(piece);
         promotion_board.set_bit(pos_to);
-        self.update_cache();
 
         undo.set_special(Some(SpecialMove::Promotion(piece)));
 
