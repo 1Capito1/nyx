@@ -1,5 +1,5 @@
-use derive_more::Display;
 use PieceType::*;
+use derive_more::Display;
 
 use crate::bit_board::Offset;
 use crate::board::{Color, KNIGHT_OFFSETS};
@@ -144,6 +144,11 @@ impl Piece {
     }
 
     #[must_use]
+    pub fn is_color(&self, color: Color) -> bool {
+        self.get_color() == color
+    }
+
+    #[must_use]
     pub fn is_white(&self) -> bool {
         if let Piece::White(_) = self {
             return true;
@@ -189,12 +194,10 @@ impl Piece {
         for offset in KNIGHT_OFFSETS {
             if let Some(position) = to_position.to_square().offset(offset) {
                 if position == pos.to_square() {
-                    println!("knight can attack");
                     return true;
                 }
             }
         }
-        println!("false");
         false
     }
 

@@ -1,6 +1,6 @@
 use crate::{
-    bit_board::Position,
-    board::{Board, Color, Move, MoveBuilder, PieceType, UndoMove},
+    bit_board::{Position, Square},
+    board::{Board, Color, Move, MoveBuilder, Piece, PieceType, UndoMove},
     errors::MoveError,
 };
 
@@ -33,6 +33,30 @@ impl Board {
 
         let mut ret = handler(self, move_ident);
         if let Ok(undo) = ret.as_mut() {
+            let king_pos = match self.side_to_move {
+                Color::White => self.white_king.iter_squares().nth(0).map_or_else(
+                    || {
+                        println!("KING MISSING BOARD");
+                        self.pretty_print();
+                        panic!("White King not found");
+                    },
+                    Square::to_position,
+                ),
+                Color::Black => self.black_king.iter_squares().nth(0).map_or_else(
+                    || {
+                        panic!("Black King not found");
+                    },
+                    Square::to_position,
+                ),
+            };
+            let enemy_color = match self.side_to_move {
+                Color::White => Piece::Black(PieceType::Pawn),
+                Color::Black => Piece::White(PieceType::Pawn),
+            };
+            if self.is_check(&king_pos, enemy_color) {
+                self.undo_move(undo.clone());
+                return Err(MoveError::KingLeftInCheck(from, to));
+            }
             undo.set_side(self.side_to_move);
             self.side_to_move = match self.side_to_move {
                 Color::White => Color::Black,
@@ -42,7 +66,7 @@ impl Board {
             self.cache_set(to.into(), Some(moving_piece));
             self.cache_set(from.into(), None);
         }
-        return ret;
+        ret
     }
 
     pub(crate) fn undo_move(&mut self, undo: UndoMove) {

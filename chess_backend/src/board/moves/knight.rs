@@ -17,7 +17,7 @@ impl Board {
 
         let knight = self
             .get_cached_piece_at(from)
-            .ok_or(PieceNotFound(from.to_position()))?;
+            .ok_or_else(|| PieceNotFound(from.to_position()))?;
 
         if !knight.is_type(PieceType::Knight) {
             return Err(IncorrectPiece(PieceType::Knight, knight.get_type()));

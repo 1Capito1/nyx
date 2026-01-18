@@ -3,6 +3,7 @@ use typed_builder::TypedBuilder;
 use crate::bit_board::Square;
 use crate::board::{Board, Color, Piece};
 
+#[derive(Clone, Copy)]
 pub(crate) enum SpecialMove {
     Promotion(Piece),
     EnPassant(Square),
@@ -39,7 +40,7 @@ impl Move {
     }
 }
 
-#[derive(TypedBuilder)]
+#[derive(TypedBuilder, Clone)]
 pub(crate) struct UndoMove {
     #[builder(default, setter(into))]
     undo: Vec<UndoChange>,

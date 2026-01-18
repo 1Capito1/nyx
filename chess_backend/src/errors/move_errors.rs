@@ -1,8 +1,8 @@
 use derive_more::Display;
 use thiserror::Error;
 
-use crate::board::{Piece, PieceType};
 use crate::bit_board::{FileChars, Position};
+use crate::board::{Piece, PieceType};
 
 #[derive(Error, Debug)]
 pub enum MoveError {
@@ -26,6 +26,8 @@ pub enum MoveError {
     InvalidMove(PieceType, Position, Position),
     #[error("Piece Blocking Sliding Movement: from: {0}, to: {1}")]
     PieceBlockingMovement(Position, Position),
+    #[error("King left in check after move, {0}:{1}")]
+    KingLeftInCheck(Position, Position),
     #[error("CRITICAL: Unknown Error: {0}:{1}")]
     Unknown(&'static str, u32),
 }

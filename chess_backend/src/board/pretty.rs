@@ -3,6 +3,7 @@ use crate::bit_board::BitBoard;
 use super::Board;
 
 impl Board {
+    #[allow(clippy::cast_possible_truncation)]
     pub fn pretty_print(&self) -> [char; 64] {
         let mut board_rep = ['.'; 64];
         for (i, cell) in board_rep.iter_mut().enumerate() {
@@ -59,6 +60,7 @@ impl Board {
                 panic!("Multiple Pieces on one square");
             }
         }
+        println!();
         BitBoard::print_bitboard_rep(&board_rep);
         board_rep
     }
