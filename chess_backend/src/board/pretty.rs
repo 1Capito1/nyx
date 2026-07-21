@@ -1,4 +1,4 @@
-use crate::bit_board::BitBoard;
+use crate::bit_board::{BitBoard, Position, Square};
 
 use super::Board;
 
@@ -57,7 +57,10 @@ impl Board {
                 set_count += 1;
             }
             if set_count > 1 {
-                panic!("Multiple Pieces on one square");
+                panic!(
+                    "Multiple Pieces on one square: {}",
+                    Square(i as u8).to_position()
+                );
             }
         }
         println!();

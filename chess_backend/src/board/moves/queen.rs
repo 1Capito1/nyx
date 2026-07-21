@@ -1,13 +1,13 @@
+use crate::Position;
 use crate::board::PieceType::Queen;
 use crate::board::{Board, UndoChange};
 use crate::errors::MoveError;
 use crate::ray::{Direction, Ray};
-use crate::Position;
 
-use super::{is_bishop_move, is_rook_move, Move, UndoMove};
+use super::{Move, UndoMove, is_bishop_move, is_rook_move};
 
 impl Board {
-    pub fn move_queen(&mut self, move_info: Move) -> Result<UndoMove, MoveError> {
+    pub fn move_queen(&mut self, move_info: &Move) -> Result<UndoMove, MoveError> {
         let current_pos = move_info.move_from().to_position();
         let pos_to = move_info.move_to().to_position();
 

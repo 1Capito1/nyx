@@ -1,8 +1,8 @@
-use crate::board::{piece, Board, PieceType, UndoChange};
-use crate::errors::MoveError;
-use crate::ray::{self, Direction, Ray};
 use crate::PieceType::Rook;
 use crate::Position;
+use crate::board::{Board, PieceType, UndoChange, piece};
+use crate::errors::MoveError;
+use crate::ray::{self, Direction, Ray};
 
 use super::{Move, UndoMove};
 
@@ -14,7 +14,7 @@ const ROOK_DIRECTIONS: [Direction; 4] = [
 ];
 
 impl Board {
-    pub fn move_rook(&mut self, move_info: Move) -> Result<UndoMove, MoveError> {
+    pub fn move_rook(&mut self, move_info: &Move) -> Result<UndoMove, MoveError> {
         let current_pos = move_info.move_from().to_position();
         let pos_to = move_info.move_to().to_position();
 

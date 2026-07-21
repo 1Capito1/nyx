@@ -3,7 +3,7 @@ mod tests {
     use crate::bit_board::{FileChars, Square};
     use crate::board::{Piece, PieceType};
     use crate::game_state::GameState;
-    use crate::{res_assert, File, Move, Position, Rank};
+    use crate::{File, Move, Position, Rank, res_assert};
 
     #[test]
     fn test_knight_simple_move() {
@@ -14,7 +14,7 @@ mod tests {
         let to = Square::from_position(&Position::from_notation(FileChars::E, 6));
 
         let mv = Move::builder().move_from(from).move_to(to).build();
-        res_assert!(game.board.move_knight(mv));
+        res_assert!(game.board.move_knight(&mv));
     }
 
     #[test]
@@ -26,7 +26,7 @@ mod tests {
         let to = Square::from_position(&Position::from_notation(FileChars::E, 6));
 
         let mv = Move::builder().move_from(from).move_to(to).build();
-        res_assert!(game.board.move_knight(mv));
+        res_assert!(game.board.move_knight(&mv));
     }
 
     #[test]
@@ -38,7 +38,7 @@ mod tests {
         let to = Square::from_position(&Position::from_notation(FileChars::E, 6));
 
         let mv = Move::builder().move_from(from).move_to(to).build();
-        let result = game.board.move_knight(mv);
+        let result = game.board.move_knight(&mv);
         assert!(result.is_err(), "Knight should not capture same color");
     }
 
@@ -51,7 +51,7 @@ mod tests {
         let to = Square::from_position(&Position::from_notation(FileChars::F, 6)); // wrong move
 
         let mv = Move::builder().move_from(from).move_to(to).build();
-        let result = game.board.move_knight(mv);
+        let result = game.board.move_knight(&mv);
         assert!(result.is_err(), "Knight should not move invalidly");
     }
 
@@ -64,7 +64,7 @@ mod tests {
         let to = Square::from_position(&Position::from_notation(FileChars::H, 3));
 
         let mv = Move::builder().move_from(from).move_to(to).build();
-        let result = game.board.move_knight(mv);
+        let result = game.board.move_knight(&mv);
         assert!(result.is_err(), "Knight should not wrap across board");
     }
 
@@ -77,7 +77,7 @@ mod tests {
         let to = Square::from_position(&Position::from_notation(FileChars::A, 5));
 
         let mv = Move::builder().move_from(from).move_to(to).build();
-        let result = game.board.move_knight(mv);
+        let result = game.board.move_knight(&mv);
         assert!(result.is_err(), "Knight should not wrap across board");
     }
 
@@ -90,7 +90,7 @@ mod tests {
         let to = Square::from_position(&Position::from_notation(FileChars::E, 3)); // legal
 
         let mv = Move::builder().move_from(from).move_to(to).build();
-        res_assert!(game.board.move_knight(mv));
+        res_assert!(game.board.move_knight(&mv));
     }
 
     #[test]
@@ -102,6 +102,6 @@ mod tests {
         let to = Square::from_position(&Position::from_notation(FileChars::E, 6)); // legal
 
         let mv = Move::builder().move_from(from).move_to(to).build();
-        res_assert!(game.board.move_knight(mv));
+        res_assert!(game.board.move_knight(&mv));
     }
 }

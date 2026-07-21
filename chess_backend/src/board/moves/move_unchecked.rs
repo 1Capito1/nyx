@@ -1,11 +1,11 @@
+use crate::Piece;
+use crate::PieceType;
+use crate::PieceType::Pawn;
 use crate::bit_board::Offset;
 use crate::bit_board::Position;
 use crate::bit_board::Rank;
 use crate::bit_board::Square;
 use crate::board::{Move, UndoMove};
-use crate::Piece;
-use crate::PieceType;
-use crate::PieceType::Pawn;
 
 use crate::board::Board;
 
@@ -26,8 +26,11 @@ impl Board {
             let board = self.match_board(piece);
             board.clear_bit(square_from);
             board.set_bit(square_to);
+            self.cache_set(square_from, None);
+            self.cache_set(square_to, Some(piece));
         } else {
-            panic!("Piece not found");
+            self.pretty_print();
+            panic!("Piece not found: {}", position_from);
         }
     }
 }

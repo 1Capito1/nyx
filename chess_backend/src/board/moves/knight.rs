@@ -11,7 +11,7 @@ use super::{Move, UndoMove};
 pub(crate) const KNIGHT_OFFSETS: [i8; 8] = [15, 17, 6, 10, -6, -10, -15, -17];
 
 impl Board {
-    pub fn move_knight(&mut self, move_info: Move) -> Result<UndoMove, MoveError> {
+    pub fn move_knight(&mut self, move_info: &Move) -> Result<UndoMove, MoveError> {
         let from = move_info.move_from();
         let to = move_info.move_to();
 

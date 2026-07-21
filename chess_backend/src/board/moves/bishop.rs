@@ -1,13 +1,13 @@
+use crate::Position;
 use crate::board::PieceType::Bishop;
 use crate::board::{Board, UndoChange};
 use crate::errors::MoveError;
 use crate::ray::{Direction, Ray};
-use crate::Position;
 
 use super::{Move, UndoMove};
 
 impl Board {
-    pub fn move_bishop(&mut self, move_info: Move) -> Result<UndoMove, MoveError> {
+    pub fn move_bishop(&mut self, move_info: &Move) -> Result<UndoMove, MoveError> {
         let current_pos = move_info.move_from().to_position();
         let pos_to = move_info.move_to().to_position();
 
@@ -31,11 +31,8 @@ impl Board {
             MoveError::InvalidMove(Bishop, current_pos, pos_to),
         )?;
 
-        println!("{dir:?}");
-
         if let Some(blocking_piece) = Ray::new(current_pos.to_square(), dir)
             .take_while(|x| *x != pos_to.to_square())
-            .inspect(|s| println!("{s:?}"))
             .map(|s| s.to_position())
             .find(|pos| self.get_cached_piece_at(*pos).is_some())
         {

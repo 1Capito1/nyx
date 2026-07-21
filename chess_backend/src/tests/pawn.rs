@@ -3,7 +3,7 @@ mod tests {
     use crate::bit_board::{FileChars, Square};
     use crate::board::{Piece, PieceType};
     use crate::game_state::GameState;
-    use crate::{res_assert, File, Move, Position, Rank};
+    use crate::{File, Move, Position, Rank, STARTING_POSITION_FEN, res_assert};
 
     #[test]
     fn test_white_pawn_push_and_double_push() {
@@ -17,7 +17,7 @@ mod tests {
 
         // Single push
         let mv = Move::builder().move_from(from).move_to(to_single).build();
-        let undo = game.board.move_pawn(mv);
+        let undo = game.board.move_pawn(&mv);
         assert!(undo.is_ok(), "Pawn should be able to single push");
 
         // Reset game state
@@ -25,7 +25,7 @@ mod tests {
 
         // Double push
         let mv = Move::builder().move_from(from).move_to(to_double).build();
-        let undo = game.board.move_pawn(mv);
+        let undo = game.board.move_pawn(&mv);
         assert!(undo.is_ok(), "Pawn should be able to double push");
     }
 
@@ -39,7 +39,7 @@ mod tests {
         let to_double = Square::from_position(&Position::new(File(4), Rank(3))); // e4
 
         let mv = Move::builder().move_from(from).move_to(to_double).build();
-        let undo = game.board.move_pawn(mv);
+        let undo = game.board.move_pawn(&mv);
         game.board.pretty_print();
         assert!(
             undo.is_err(),
@@ -60,7 +60,7 @@ mod tests {
         let to = Square::from_position(&Position::from_notation(FileChars::F, 6));
 
         let mv = Move::builder().move_from(from).move_to(to).build();
-        let result = game.board.move_pawn(mv);
+        let result = game.board.move_pawn(&mv);
 
         game.board.pretty_print();
 
@@ -76,7 +76,7 @@ mod tests {
         let to = Square::from_position(&Position::from_notation(FileChars::D, 5)); // d5
 
         let mv = Move::builder().move_from(from).move_to(to).build();
-        let result = game.board.move_pawn(mv);
+        let result = game.board.move_pawn(&mv);
 
         res_assert!(result);
     }
@@ -92,7 +92,7 @@ mod tests {
         let to = Square::from_position(&Position::from_notation(FileChars::D, 4));
 
         let mv = Move::builder().move_from(from).move_to(to).build();
-        let result = game.board.move_pawn(mv);
+        let result = game.board.move_pawn(&mv);
 
         res_assert!(result);
     }
@@ -106,7 +106,7 @@ mod tests {
         let to = Square::from_position(&Position::from_notation(FileChars::F, 4));
 
         let mv = Move::builder().move_from(from).move_to(to).build();
-        let result = game.board.move_pawn(mv);
+        let result = game.board.move_pawn(&mv);
 
         res_assert!(result);
     }
@@ -121,7 +121,7 @@ mod tests {
         let to = Square::from_position(&Position::new(File(2), Rank(5))); // c5
 
         let mv = Move::builder().move_from(from).move_to(to).build();
-        let result = game.board.move_pawn(mv);
+        let result = game.board.move_pawn(&mv);
 
         game.board.pretty_print();
 
@@ -137,7 +137,7 @@ mod tests {
         let to = Square::from_position(&Position::new(File(5), Rank(5))); // f5
 
         let mv = Move::builder().move_from(from).move_to(to).build();
-        let result = game.board.move_pawn(mv);
+        let result = game.board.move_pawn(&mv);
 
         assert!(result.is_err());
     }
@@ -151,7 +151,7 @@ mod tests {
         let to = Square::from_position(&Position::from_notation(FileChars::H, 5)); // totally wrong direction
 
         let mv = Move::builder().move_from(from).move_to(to).build();
-        let result = game.board.move_pawn(mv);
+        let result = game.board.move_pawn(&mv);
 
         assert!(result.is_err())
     }
@@ -164,8 +164,10 @@ mod tests {
         let from = Square::from_position(&Position::from_notation(FileChars::A, 4)); // a4
         let to = Square::from_position(&Position::from_notation(FileChars::B, 5)); // b5
 
+        game.board.pretty_print();
         let mv = Move::builder().move_from(from).move_to(to).build();
-        let result = game.board.move_pawn(mv);
+        let result = game.board.move_pawn(&mv);
+        game.board.pretty_print();
 
         res_assert!(result);
     }
@@ -180,7 +182,7 @@ mod tests {
         let to = Square::from_position(&Position::from_notation(FileChars::G, 5)); // g5
 
         let mv = Move::builder().move_from(from).move_to(to).build();
-        let result = game.board.move_pawn(mv);
+        let result = game.board.move_pawn(&mv);
 
         game.board.pretty_print();
 
@@ -205,7 +207,7 @@ mod tests {
             .promotion(Piece::White(PieceType::Queen))
             .build();
 
-        let result = game.board.move_pawn(move_info);
+        let result = game.board.move_pawn(&move_info);
         game.board.build_cache();
         res_assert!(result);
 
@@ -241,7 +243,7 @@ mod tests {
             .promotion(Piece::White(PieceType::Queen))
             .build();
 
-        let result = game.board.move_pawn(mv);
+        let result = game.board.move_pawn(&mv);
         game.board.build_cache();
         res_assert!(result);
 
@@ -269,7 +271,7 @@ mod tests {
             .promotion(Piece::Black(PieceType::Queen))
             .build();
 
-        let result = game.board.move_pawn(mv);
+        let result = game.board.move_pawn(&mv);
         res_assert!(result);
         game.board.build_cache();
 
@@ -296,7 +298,7 @@ mod tests {
             // no promotion() call here
             .build();
 
-        let result = game.board.move_pawn(mv);
+        let result = game.board.move_pawn(&mv);
         println!("After illegal promotion without specifying piece:");
         game.board.pretty_print();
         res_assert!(result);
@@ -319,7 +321,7 @@ mod tests {
             .promotion(Piece::Black(PieceType::Queen))
             .build();
 
-        let result = game.board.move_pawn(mv);
+        let result = game.board.move_pawn(&mv);
 
         game.board.build_cache();
 
@@ -345,10 +347,10 @@ mod tests {
             .move_to(to.to_square())
             .build();
 
-        let result = game.board.move_pawn(mv);
+        let result = game.board.move_pawn(&mv);
         game.board.build_cache();
         game.board.pretty_print();
-        res_assert!(result);
+        res_assert!(dbg!(result));
 
         assert_eq!(game.board.get_cached_piece_at(from), None); // from
         assert_eq!(
@@ -360,5 +362,102 @@ mod tests {
             game.board.get_cached_piece_at(to),
             Some(Piece::White(PieceType::Pawn))
         ); // to
+    }
+
+    #[test]
+    fn test_white_double_push_en_passant_square() {
+        let mut game = GameState::from_fen(STARTING_POSITION_FEN);
+
+        let mv = Move::builder()
+            .move_from(Position::from_notation(FileChars::B, 2).to_square())
+            .move_to(Position::from_notation(FileChars::B, 4).to_square())
+            .build();
+
+        #[allow(unused_must_use)]
+        game.board.move_pawn(&mv);
+
+        assert_eq!(
+            game.board.en_passant_square,
+            Some(Position::from_notation(FileChars::B, 3).to_square())
+        );
+    }
+    #[test]
+    fn test_black_double_push_en_passant_square() {
+        let mut game = GameState::from_fen(STARTING_POSITION_FEN);
+
+        let mv = Move::builder()
+            .move_from(Position::from_notation(FileChars::G, 7).to_square())
+            .move_to(Position::from_notation(FileChars::G, 5).to_square())
+            .build();
+
+        #[allow(unused_must_use)]
+        game.board.move_pawn(&mv);
+
+        assert_eq!(
+            game.board.en_passant_square,
+            Some(Position::from_notation(FileChars::G, 6).to_square())
+        );
+    }
+
+    #[test]
+    fn test_a4_to_b5_white_pawn() {
+        let mut game = GameState::from_fen("8/8/8/p7/1P6/8/8/8 w - - 0 1");
+        game.board.pretty_print();
+        let from = Position::from_notation(FileChars::B, 4);
+        let to = Position::from_notation(FileChars::A, 5);
+        let mv = Move::builder()
+            .move_from(from.to_square())
+            .move_to(to.to_square())
+            .build();
+
+        let result = game.board.move_pawn(&mv);
+
+        res_assert!(result);
+
+        let actual_fen = GameState::to_fen(&game.board);
+
+        game.board.pretty_print();
+        let expected_fen = "8/8/8/P7/8/8/8/8 w - - 0 1".to_string();
+
+        assert_eq!(actual_fen, expected_fen);
+    }
+
+    #[test]
+    fn test_king_captured_en_passant() {
+        let mut game = GameState::from_fen("8/8/8/8/8/8/3PP3/2K5 w - - 0 1");
+        game.board.pretty_print();
+        let double_from = Position::from_notation(FileChars::D, 2);
+        let double_to = Position::from_notation(FileChars::D, 4);
+
+        let king_from = Position::from_notation(FileChars::C, 1);
+        let king_to = Position::from_notation(FileChars::D, 2);
+
+        let passant_from = Position::from_notation(FileChars::E, 2);
+        let passant_to = Position::from_notation(FileChars::D, 3);
+
+        let double_move = Move::builder()
+            .move_from(double_from.to_square())
+            .move_to(double_to.to_square())
+            .build();
+
+        let king_move = Move::builder()
+            .move_from(king_from.to_square())
+            .move_to(king_to.to_square())
+            .build();
+
+        let passant_move = Move::builder()
+            .move_from(passant_from.to_square())
+            .move_to(passant_to.to_square())
+            .build();
+
+        let res_double = game.board.move_pawn(&double_move);
+        game.board.pretty_print();
+        let res_king = game.board.move_king(&king_move);
+        game.board.pretty_print();
+        let res_passant = game.board.move_pawn(&passant_move);
+        game.board.pretty_print();
+
+        res_assert!(res_double);
+        res_assert!(res_king, err);
     }
 }

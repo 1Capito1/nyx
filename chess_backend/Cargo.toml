@@ -4,6 +4,6 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+bon = "3.8.2"
 derive_more = {version = "2.0.1", features = ["full"]}
 thiserror = "2.0.12"
-typed-builder = "0.21.0"

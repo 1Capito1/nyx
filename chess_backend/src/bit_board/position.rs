@@ -6,7 +6,7 @@ use super::rank::Rank;
 use super::{File, FileChars, Square};
 use derive_more::Display;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) struct Position {
     file: File,
     rank: Rank,
@@ -14,7 +14,12 @@ pub(crate) struct Position {
 
 impl Display for Position {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "({}, {})", Into::<FileChars>::into(self.file), self.rank)
+        write!(
+            f,
+            "{}{}",
+            Into::<FileChars>::into(self.file),
+            self.rank.0 + 1
+        )
     }
 }
 
@@ -49,6 +54,7 @@ impl Position {
         (f_diff, r_diff)
     }
 
+    /// (file, rank)
     pub(crate) fn offset_pos(&self, offset: (i8, i8)) -> Option<Position> {
         let nf = self.file.offset(offset.0)?;
         let nr = self.rank.offset(offset.1)?;
@@ -91,7 +97,6 @@ impl Position {
 
     pub(crate) fn bitboard_mask(&self) -> u64 {
         let shift = self.square_num();
-        println!("SHIFT AMOUNT: {shift}");
         1u64 << shift
     }
 

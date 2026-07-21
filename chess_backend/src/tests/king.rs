@@ -21,7 +21,7 @@ mod tests {
         let mv = Move::builder().move_from(from).move_to(to).build();
 
         game.board.pretty_print();
-        let res = game.board.move_king(mv);
+        let res = game.board.move_king(&mv);
         game.board.build_cache();
         res_assert!(res);
         game.board.pretty_print();
@@ -53,7 +53,7 @@ mod tests {
         let mv = Move::builder().move_from(from).move_to(to).build();
 
         game.board.pretty_print();
-        let result = game.board.move_king(mv);
+        let result = game.board.move_king(&mv);
         game.board.pretty_print();
 
         res_assert!(result, err);
@@ -70,7 +70,7 @@ mod tests {
         let mv = Move::builder().move_from(from).move_to(to).build();
 
         game.board.pretty_print();
-        let result = game.board.move_king(mv);
+        let result = game.board.move_king(&mv);
         game.board.pretty_print();
 
         res_assert!(result, err);
@@ -86,7 +86,7 @@ mod tests {
 
         let mv = Move::builder().move_from(from).move_to(to).build();
 
-        let result = game.board.move_king(mv);
+        let result = game.board.move_king(&mv);
 
         res_assert!(result, err);
     }
@@ -101,7 +101,7 @@ mod tests {
 
         let mv = Move::builder().move_from(from).move_to(to).build();
 
-        let result = game.board.move_king(mv);
+        let result = game.board.move_king(&mv);
 
         res_assert!(result, err);
     }
@@ -116,7 +116,7 @@ mod tests {
         let to = Square::from_notation(FileChars::G, 8);
 
         let mv = Move::builder().move_from(from).move_to(to).build();
-        let res = game.board.move_king(mv);
+        let res = game.board.move_king(&mv);
         game.board.build_cache();
         res_assert!(res);
         game.board.pretty_print();
@@ -146,7 +146,7 @@ mod tests {
 
         let mv = Move::builder().move_from(from).move_to(to).build();
 
-        let res = game.board.move_king(mv);
+        let res = game.board.move_king(&mv);
         game.board.build_cache();
         res_assert!(res);
 
@@ -175,7 +175,7 @@ mod tests {
 
         let mv = Move::builder().move_from(from).move_to(to).build();
 
-        let result = game.board.move_king(mv);
+        let result = game.board.move_king(&mv);
 
         res_assert!(result, err); // ❌ should fail due to blocking knight
     }
@@ -189,7 +189,7 @@ mod tests {
 
         let mv = Move::builder().move_from(from).move_to(to).build();
 
-        let result = game.board.move_king(mv);
+        let result = game.board.move_king(&mv);
 
         res_assert!(result, err); // ❌ should fail due to bishop in the way
     }
@@ -203,7 +203,7 @@ mod tests {
 
         let mv = Move::builder().move_from(from).move_to(to).build();
 
-        let result = game.board.move_king(mv);
+        let result = game.board.move_king(&mv);
 
         res_assert!(result, err); // ❌ should fail — no rights
     }

@@ -1,6 +1,7 @@
 use crate::bit_board::{BitBoard, CheckedSub, File, Position, Rank, Square};
-use crate::board::Board;
-use crate::board::FenNotation;
+use crate::board::Piece::{Black, White};
+use crate::board::{Board, Color};
+use crate::board::{FenNotation, PieceType};
 
 const VALID_FEN_PEICE_NOTATIONS: [char; 12] =
     ['p', 'n', 'b', 'r', 'q', 'k', 'P', 'N', 'B', 'R', 'Q', 'K'];
@@ -71,7 +72,99 @@ impl GameState {
             "FEN parsing error: final rank is invalid"
         );
     }
+    pub fn to_fen(board: &Board) -> String {
+        let mut fen = String::new();
 
+        // 1. Piece placement (from rank 8 to rank 1)
+        for rank in (0..8).rev() {
+            let mut empty_count = 0;
+            for file in 0..8 {
+                let pos = Position::new(File(file), Rank(rank));
+                match board.get_cached_piece_at(pos) {
+                    Some(piece) => {
+                        if empty_count > 0 {
+                            fen.push_str(&empty_count.to_string());
+                            empty_count = 0;
+                        }
+                        let ch = match (piece.get_type(), piece.get_color()) {
+                            (PieceType::Pawn, Color::White) => 'P',
+                            (PieceType::Pawn, Color::Black) => 'p',
+                            (PieceType::Knight, Color::White) => 'N',
+                            (PieceType::Knight, Color::Black) => 'n',
+                            (PieceType::Bishop, Color::White) => 'B',
+                            (PieceType::Bishop, Color::Black) => 'b',
+                            (PieceType::Rook, Color::White) => 'R',
+                            (PieceType::Rook, Color::Black) => 'r',
+                            (PieceType::Queen, Color::White) => 'Q',
+                            (PieceType::Queen, Color::Black) => 'q',
+                            (PieceType::King, Color::White) => 'K',
+                            (PieceType::King, Color::Black) => 'k',
+                        };
+                        fen.push(ch);
+                    }
+                    None => empty_count += 1,
+                }
+            }
+            if empty_count > 0 {
+                fen.push_str(&empty_count.to_string());
+            }
+            if rank > 0 {
+                fen.push('/');
+            }
+        }
+
+        // 2. Active color
+        fen.push(' ');
+        fen.push(match board.side_to_move {
+            Color::White => 'w',
+            Color::Black => 'b',
+        });
+
+        // 3. Castling availability
+        fen.push(' ');
+        let mut castling = String::new();
+        if board
+            .castling_rights
+            .can_castle_kingside(White(PieceType::Pawn))
+        {
+            castling.push('K');
+        }
+        if board
+            .castling_rights
+            .can_castle_queenside(White(PieceType::Pawn))
+        {
+            castling.push('Q');
+        }
+        if board
+            .castling_rights
+            .can_castle_kingside(Black(PieceType::Pawn))
+        {
+            castling.push('k');
+        }
+        if board
+            .castling_rights
+            .can_castle_queenside(Black(PieceType::Pawn))
+        {
+            castling.push('q');
+        }
+        if castling.is_empty() {
+            fen.push('-');
+        } else {
+            fen.push_str(&castling);
+        }
+
+        // 4. En passant target square
+        fen.push(' ');
+        match board.en_passant_square {
+            Some(sq) => fen.push_str(&sq.to_string()),
+            None => fen.push('-'),
+        }
+
+        // 5. Halfmove clock and fullmove number (placeholders)
+        fen.push_str(" 0 1");
+
+        fen
+    }
     fn set_active_color(board: &mut Board, active_color: &str) -> Player {
         match active_color {
             "w" => Player::White(Agent::Human),

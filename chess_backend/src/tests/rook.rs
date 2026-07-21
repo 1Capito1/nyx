@@ -13,7 +13,7 @@ mod tests {
         let to = Square::from_position(&Position::from_notation(FileChars::A, 4)); // a4
 
         let mv = Move::builder().move_from(from).move_to(to).build();
-        let undo = game.board.move_rook(mv);
+        let undo = game.board.move_rook(&mv);
         assert!(undo.is_ok(), "Rook should be able to move vertically");
     }
 
@@ -26,7 +26,7 @@ mod tests {
         let to = Square::from_position(&Position::from_notation(FileChars::H, 1));
 
         let mv = Move::builder().move_from(from).move_to(to).build();
-        let undo = game.board.move_rook(mv);
+        let undo = game.board.move_rook(&mv);
         assert!(
             undo.is_ok(),
             "Rook should be able to capture enemy pawn horizontally"
@@ -42,7 +42,7 @@ mod tests {
         let to = Square::from_position(&Position::from_notation(FileChars::H, 1));
 
         let mv = Move::builder().move_from(from).move_to(to).build();
-        let undo = game.board.move_rook(mv);
+        let undo = game.board.move_rook(&mv);
         assert!(
             undo.is_err(),
             "Rook should not be able to capture friendly pawn"
@@ -58,7 +58,7 @@ mod tests {
         let to = Square::from_position(&Position::from_notation(FileChars::H, 1));
 
         let mv = Move::builder().move_from(from).move_to(to).build();
-        let undo = game.board.move_rook(mv);
+        let undo = game.board.move_rook(&mv);
         assert!(
             undo.is_err(),
             "Rook should not be able to jump over a blocking piece"
@@ -74,7 +74,7 @@ mod tests {
         let to = Square::from_position(&Position::from_notation(FileChars::D, 4)); // illegal diagonal move
 
         let mv = Move::builder().move_from(from).move_to(to).build();
-        let undo = game.board.move_rook(mv);
+        let undo = game.board.move_rook(&mv);
         assert!(undo.is_err(), "Rook should not be able to move diagonally");
     }
 
@@ -87,7 +87,7 @@ mod tests {
         let to = Square::from_position(&Position::from_notation(FileChars::A, 4));
 
         let mv = Move::builder().move_from(from).move_to(to).build();
-        let undo = game.board.move_rook(mv);
+        let undo = game.board.move_rook(&mv);
         assert!(
             undo.is_err(),
             "Should not be able to move a rook from an empty square"
@@ -103,7 +103,7 @@ mod tests {
         let to = Square::from_position(&Position::from_notation(FileChars::A, 4));
 
         let mv = Move::builder().move_from(from).move_to(to).build();
-        let undo = game.board.move_rook(mv);
+        let undo = game.board.move_rook(&mv);
         assert!(
             undo.is_err(),
             "Should not be able to move a knight as a rook"

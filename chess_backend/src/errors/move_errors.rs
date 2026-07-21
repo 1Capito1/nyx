@@ -28,6 +28,8 @@ pub enum MoveError {
     PieceBlockingMovement(Position, Position),
     #[error("King left in check after move, {0}:{1}")]
     KingLeftInCheck(Position, Position),
+    #[error("Attempted to take king, from {0} : to{1}")]
+    CaptureKing(Position, Position),
     #[error("CRITICAL: Unknown Error: {0}:{1}")]
     Unknown(&'static str, u32),
 }

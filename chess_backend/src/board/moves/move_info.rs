@@ -1,21 +1,31 @@
-use typed_builder::TypedBuilder;
+use std::ffi::os_str::Display;
 
 use crate::bit_board::Square;
 use crate::board::{Board, Color, Piece};
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub(crate) enum SpecialMove {
     Promotion(Piece),
-    EnPassant(Square),
+    EnPassant(Option<Square>),
     Castling { rook_to: u8, rook_from: u8 },
 }
 
-#[derive(TypedBuilder, Debug)]
+#[derive(bon::Builder, Debug)]
 pub(crate) struct Move {
-    #[builder(default, setter(strip_option))]
     promotion: Option<Piece>,
     move_to: Square,
     move_from: Square,
+}
+
+impl std::fmt::Display for Move {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}{}",
+            self.move_from().to_position(),
+            self.move_to().to_position()
+        )
+    }
 }
 
 impl Move {
@@ -40,13 +50,10 @@ impl Move {
     }
 }
 
-#[derive(TypedBuilder, Clone)]
+#[derive(bon::Builder, Clone, Debug)]
 pub(crate) struct UndoMove {
-    #[builder(default, setter(into))]
     undo: Vec<UndoChange>,
-    #[builder(default)]
     special: Option<SpecialMove>,
-    #[builder(default=Color::White)]
     side_before: Color,
 }
 
